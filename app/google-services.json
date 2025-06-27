@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "75581709372",
+    "firebase_url": "https://appmobile-c561a-default-rtdb.firebaseio.com",
+    "project_id": "appmobile-c561a",
+    "storage_bucket": "appmobile-c561a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:75581709372:android:c62a368517b9b904ef3739",
+        "android_client_info": {
+          "package_name": "com.example.datn"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAi-CiyFQ4KIQ9LuD0kkExOQTnxVUiNYRQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:75581709372:android:92d38a61de75105fef3739",
+        "android_client_info": {
+          "package_name": "com.example.datn_md02"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAi-CiyFQ4KIQ9LuD0kkExOQTnxVUiNYRQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:75581709372:android:93e33068f8ffd256ef3739",
+        "android_client_info": {
+          "package_name": "fpoly.md19304.app_moblie"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAi-CiyFQ4KIQ9LuD0kkExOQTnxVUiNYRQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
