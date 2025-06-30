@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace 'com.example.datn_md02'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.example.datn_md02"
@@ -23,21 +23,35 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
+
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/NOTICE.md', 'META-INF/LICENSE.md', 'META-INF/LICENSE', 'META-INF/DEPENDENCIES']
+        }
+    }
 }
 
 dependencies {
-
     implementation libs.appcompat
     implementation libs.material
     implementation libs.activity
     implementation libs.constraintlayout
+
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
+
     implementation platform('com.google.firebase:firebase-bom:33.15.0')
     implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-database'
+    implementation 'com.google.firebase:firebase-functions'
+
+    implementation 'com.sun.mail:android-mail:1.6.7'
+    implementation 'com.sun.mail:android-activation:1.6.7'
 }
