@@ -138,65 +138,33 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        usersRef.get().addOnSuccessListener(snapshot -> {
-            boolean emailExists = false;
-            boolean phoneExists = false;
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        if (user != null) {
+                            Map<String, Object> userMap = new HashMap<>();
+                            userMap.put("fullName", fullName);
+                            userMap.put("phone", phone);
+                            userMap.put("email", email);
+                            userMap.put("role", role);
 
-            for (DataSnapshot userSnapshot : snapshot.getChildren()) {
-                String existingEmail = userSnapshot.child("email").getValue(String.class);
-                String existingPhone = userSnapshot.child("phone").getValue(String.class);
-                if (email.equals(existingEmail)) emailExists = true;
-                if (phone.equals(existingPhone)) phoneExists = true;
-            }
-
-            if (emailExists) {
-                Toast.makeText(this, "Email đã được sử dụng.", Toast.LENGTH_SHORT).show();
-            } else if (phoneExists) {
-                Toast.makeText(this, "Số điện thoại đã được sử dụng.", Toast.LENGTH_SHORT).show();
-            } else {
-                String otp = generateOTP();
-
-                sendOtpToEmail(email, otp, () -> {
-                    showOtpDialog(otp, () -> {
-                        mAuth.createUserWithEmailAndPassword(email, password)
-                                .addOnCompleteListener(task -> {
-                                    if (task.isSuccessful()) {
-                                        FirebaseUser user = mAuth.getCurrentUser();
-                                        if (user != null) {
-                                            user.sendEmailVerification()
-                                                    .addOnCompleteListener(verifyTask -> {
-                                                        if (verifyTask.isSuccessful()) {
-                                                            Map<String, Object> userMap = new HashMap<>();
-                                                            userMap.put("fullName", fullName);
-                                                            userMap.put("phone", phone);
-                                                            userMap.put("email", email);
-                                                            userMap.put("role", role);
-
-                                                            usersRef.child(user.getUid())
-                                                                    .setValue(userMap)
-                                                                    .addOnSuccessListener(unused -> {
-                                                                        Toast.makeText(this, "Đăng ký thành công. Vui lòng xác minh email!", Toast.LENGTH_LONG).show();
-                                                                        mAuth.signOut();
-                                                                        startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
-                                                                        finish();
-                                                                    })
-                                                                    .addOnFailureListener(e -> {
-                                                                        Toast.makeText(this, "Lỗi khi lưu thông tin: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                                                                    });
-                                                        } else {
-                                                            Toast.makeText(this, "Gửi email xác minh thất bại: " + verifyTask.getException().getMessage(), Toast.LENGTH_LONG).show();
-                                                        }
-                                                    });
-                                        }
-                                    } else {
-                                        Toast.makeText(this, "Lỗi đăng ký: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
-                                    }
-                                });
-                    });
-                }, () -> Log.e("OTP", "Gửi OTP thất bại"));
-            }
-        }).addOnFailureListener(e -> {
-            Toast.makeText(this, "Lỗi kết nối Firebase: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        });
+                            usersRef.child(user.getUid())
+                                    .setValue(userMap)
+                                    .addOnSuccessListener(unused -> {
+                                        Toast.makeText(this, "Đăng ký thành công!", Toast.LENGTH_LONG).show();
+                                        mAuth.signOut();
+                                        startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
+                                        finish();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Toast.makeText(this, "Lỗi khi lưu thông tin: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    });
+                        }
+                    } else {
+                        Toast.makeText(this, "Lỗi đăng ký: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
     }
+
 }
