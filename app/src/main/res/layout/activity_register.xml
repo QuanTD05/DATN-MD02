@@ -122,7 +122,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Đã có tài khoản? Đăng nhập"
-            android:textColor="#EB5757"
+            android:textColor="#47A94B"
             android:layout_marginTop="12dp"
             android:layout_gravity="center" />
     </LinearLayout>
