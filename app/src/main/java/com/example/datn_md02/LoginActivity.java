@@ -1,13 +1,18 @@
 package com.example.datn_md02;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.text.style.ForegroundColorSpan;
+import android.view.View;
 import android.widget.*;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.*;
 import com.google.firebase.database.*;
 
 public class LoginActivity extends AppCompatActivity {
@@ -24,11 +29,10 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Firebase init
         mAuth = FirebaseAuth.getInstance();
         usersRef = FirebaseDatabase.getInstance().getReference("users");
 
-        // Liên kết UI
+        // Gắn UI
         emailEditText = findViewById(R.id.email);
         passwordEditText = findViewById(R.id.password);
         loginButton = findViewById(R.id.login);
@@ -38,13 +42,28 @@ public class LoginActivity extends AppCompatActivity {
         // Đăng nhập
         loginButton.setOnClickListener(v -> loginUser());
 
-        // Mở màn đăng ký
-        txtSignup.setOnClickListener(v ->
-                startActivity(new Intent(LoginActivity.this, RegisterActivity.class)));
+        // Click "Quên mật khẩu?"
+        txtForgot.setOnClickListener(v -> Toast.makeText(this, "Chức năng đang phát triển", Toast.LENGTH_SHORT).show());
 
-        // Quên mật khẩu (hiện tại chưa làm)
-        txtForgot.setOnClickListener(v ->
-                Toast.makeText(this, "Chức năng đang phát triển", Toast.LENGTH_SHORT).show());
+        // Xử lý Spannable cho "Bạn chưa có tài khoản? Đăng ký"
+        SpannableString span = new SpannableString("Bạn chưa có tài khoản? Đăng ký");
+
+        ClickableSpan clickableSpan = new ClickableSpan() {
+            @Override
+            public void onClick(@NonNull View widget) {
+                startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
+            }
+        };
+
+        int start = span.toString().indexOf("Đăng ký");
+        int end = start + "Đăng ký".length();
+
+        span.setSpan(clickableSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        span.setSpan(new ForegroundColorSpan(Color.parseColor("#47A94B")), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        txtSignup.setText(span);
+        txtSignup.setMovementMethod(LinkMovementMethod.getInstance());
+        txtSignup.setHighlightColor(Color.TRANSPARENT);
     }
 
     private void loginUser() {

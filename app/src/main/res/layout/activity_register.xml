@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:background="#FFFFFF">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -10,21 +11,24 @@
         android:orientation="vertical"
         android:padding="30dp">
 
+        <!-- Logo -->
         <ImageView
             android:layout_width="150dp"
             android:layout_height="150dp"
             android:src="@drawable/logo"
             android:layout_gravity="center"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="20dp" />
 
+        <!-- Tiêu đề -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="ĐĂNG KÝ"
-            android:textSize="20sp"
+            android:textSize="22sp"
             android:textStyle="bold"
+            android:textColor="#000000"
             android:layout_gravity="center"
-            android:layout_marginBottom="20dp" />
+            android:layout_marginBottom="24dp" />
 
         <!-- Họ và tên -->
         <EditText
@@ -33,10 +37,11 @@
             android:layout_height="wrap_content"
             android:hint="Họ và tên"
             android:inputType="textPersonName"
-            android:background="@drawable/red_border_box"
+            android:background="@drawable/gray_border_box"
             android:drawableStart="@drawable/ic_person"
-            android:padding="12dp"
-            android:layout_marginBottom="12dp" />
+            android:drawablePadding="8dp"
+            android:padding="14dp"
+            android:layout_marginBottom="14dp" />
 
         <!-- Số điện thoại -->
         <EditText
@@ -45,10 +50,11 @@
             android:layout_height="wrap_content"
             android:hint="Số điện thoại"
             android:inputType="phone"
-            android:background="@drawable/red_border_box"
+            android:background="@drawable/gray_border_box"
             android:drawableStart="@drawable/ic_phone"
-            android:padding="12dp"
-            android:layout_marginBottom="12dp" />
+            android:drawablePadding="8dp"
+            android:padding="14dp"
+            android:layout_marginBottom="14dp" />
 
         <!-- Email -->
         <EditText
@@ -57,18 +63,19 @@
             android:layout_height="wrap_content"
             android:hint="Email"
             android:inputType="textEmailAddress"
-            android:background="@drawable/red_border_box"
+            android:background="@drawable/gray_border_box"
             android:drawableStart="@drawable/ic_email"
-            android:padding="12dp" />
+            android:drawablePadding="8dp"
+            android:padding="14dp"
+            android:layout_marginBottom="14dp" />
 
         <!-- Mật khẩu -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
             android:hint="Mật khẩu"
             app:endIconMode="password_toggle"
-            app:endIconTint="#E53935"
+            android:layout_marginBottom="14dp"
             android:background="@null">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -76,20 +83,19 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPassword"
+                android:background="@drawable/gray_border_box"
                 android:drawableStart="@drawable/ic_lock"
                 android:drawablePadding="8dp"
-                android:padding="12dp"
-                android:background="@drawable/red_border_box" />
+                android:padding="14dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Xác nhận mật khẩu -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
             android:hint="Xác nhận mật khẩu"
             app:endIconMode="password_toggle"
-            app:endIconTint="#E53935"
+            android:layout_marginBottom="20dp"
             android:background="@null">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -97,33 +103,21 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPassword"
+                android:background="@drawable/gray_border_box"
                 android:drawableStart="@drawable/ic_lock"
                 android:drawablePadding="8dp"
-                android:padding="12dp"
-                android:background="@drawable/red_border_box" />
+                android:padding="14dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- RadioGroup quyền -->
         <!-- Nút đăng ký -->
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnRegister"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Đăng Ký"
+            android:text="Đăng ký"
+            android:textAllCaps="false"
             android:textColor="@android:color/white"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/button_rounded"
-            android:backgroundTint="@null"
-            android:padding="12dp" />
-
-        <!-- Chuyển sang đăng nhập -->
-        <TextView
-            android:id="@+id/txt_login"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Đã có tài khoản? Đăng nhập"
-            android:textColor="#47A94B"
-            android:layout_marginTop="12dp"
-            android:layout_gravity="center" />
+            android:backgroundTint="#47A94B"
+            android:padding="14dp" />
     </LinearLayout>
 </ScrollView>

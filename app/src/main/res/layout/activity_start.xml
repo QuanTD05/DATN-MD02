@@ -3,78 +3,53 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="24dp"
-    android:background="#FFFFFF">
+    android:background="#F5F5DC"> <!-- Màu nền be nhạt -->
 
-    <!-- Phần giữa: logo nằm giữa màn hình -->
+    <!-- Ảnh tràn đầu -->
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="360dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/logost" />
+
+    <!-- Phần nội dung text ở giữa -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:gravity="center"
-        android:orientation="vertical">
-
-        <ImageView
-            android:layout_width="180dp"
-            android:layout_height="180dp"
-            android:src="@drawable/logo"
-            android:layout_gravity="center" />
-    </LinearLayout>
-
-    <!-- Phần dưới: thông tin, nút, checkbox -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:gravity="center_horizontal">
+        android:gravity="center_horizontal"
+        android:padding="24dp">
 
         <TextView
             android:id="@+id/tvWelcome"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Chào mừng đến với FM"
-            android:textColor="#47A94B"
-            android:textSize="20sp"
-            android:textStyle="bold"
+            android:layout_marginBottom="8dp"
             android:gravity="center"
-            android:layout_marginBottom="8dp" />
+            android:text="Welcome To Furniture-store"
+            android:textColor="#388E3C"
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tvSubText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Hãy thỏa mãn sự lựa chọn của mình"
-            android:textColor="@android:color/black"
-            android:textSize="16sp"
-            android:gravity="center"
-            android:layout_marginBottom="24dp" />
-
-        <Button
-            android:id="@+id/btnContinue"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Bắt đầu"
-            android:textSize="18sp"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#47A94B"
-            android:layout_marginBottom="16dp" />
-
-        <TextView
-            android:id="@+id/tvTermsOfService"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Điều khoản dịch vụ"
-            android:textColor="@android:color/black"
+            android:text="Order with ease, savor the flavors your\nfavorite food, just a tap away"
+            android:textColor="#000000"
             android:textSize="14sp"
-            android:paddingBottom="4dp" />
-
-        <CheckBox
-            android:id="@+id/checkboxAgreement"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Tôi đồng ý các điều khoản sử dụng và chính sách quyền riêng tư"
-            android:textColor="#0F0000"
-            android:textSize="14sp"
-            android:layout_marginBottom="16dp" />
+            android:gravity="center" />
     </LinearLayout>
+
+    <!-- Nút GET STARTED dưới cùng -->
+    <Button
+        android:id="@+id/btnContinue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="GET STARTED"
+        android:textSize="16sp"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#47A94B"
+        android:layout_margin="24dp" />
 </LinearLayout>
