@@ -10,8 +10,10 @@ import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
 import android.view.View;
 import android.widget.*;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.firebase.auth.*;
 import com.google.firebase.database.*;
 
@@ -27,9 +29,17 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
 
         mAuth = FirebaseAuth.getInstance();
+
+        // ✅ Kiểm tra nếu đã đăng nhập thì chuyển luôn
+        if (mAuth.getCurrentUser() != null) {
+            checkUserRoleAndNavigate(mAuth.getCurrentUser());
+            return;
+        }
+
+        setContentView(R.layout.activity_login);
+
         usersRef = FirebaseDatabase.getInstance().getReference("users");
 
         // Gắn UI
@@ -39,13 +49,15 @@ public class LoginActivity extends AppCompatActivity {
         txtSignup = findViewById(R.id.txt_signup);
         txtForgot = findViewById(R.id.txtForgot);
 
-        // Đăng nhập
+        // Nút đăng nhập
         loginButton.setOnClickListener(v -> loginUser());
 
-        // Click "Quên mật khẩu?"
-        txtForgot.setOnClickListener(v -> Toast.makeText(this, "Chức năng đang phát triển", Toast.LENGTH_SHORT).show());
+        // Quên mật khẩu (hiện tại chưa có chức năng)
+        txtForgot.setOnClickListener(v ->
+                Toast.makeText(this, "Chức năng đang phát triển", Toast.LENGTH_SHORT).show()
+        );
 
-        // Xử lý Spannable cho "Bạn chưa có tài khoản? Đăng ký"
+        // Xử lý "Đăng ký"
         SpannableString span = new SpannableString("Bạn chưa có tài khoản? Đăng ký");
 
         ClickableSpan clickableSpan = new ClickableSpan() {
@@ -80,23 +92,7 @@ public class LoginActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            usersRef.child(user.getUid()).child("role")
-                                    .addListenerForSingleValueEvent(new ValueEventListener() {
-                                        @Override
-                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                            if (snapshot.exists()) {
-                                                String role = snapshot.getValue(String.class);
-                                                navigateToUserScreen(role);
-                                            } else {
-                                                Toast.makeText(LoginActivity.this, "Không tìm thấy vai trò người dùng", Toast.LENGTH_SHORT).show();
-                                            }
-                                        }
-
-                                        @Override
-                                        public void onCancelled(@NonNull DatabaseError error) {
-                                            Toast.makeText(LoginActivity.this, "Lỗi: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
+                            checkUserRoleAndNavigate(user);
                         }
                     } else {
                         Toast.makeText(this, "Sai email hoặc mật khẩu", Toast.LENGTH_LONG).show();
@@ -104,9 +100,37 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
 
+    private void checkUserRoleAndNavigate(FirebaseUser user) {
+        usersRef = FirebaseDatabase.getInstance().getReference("users");
+
+        usersRef.child(user.getUid()).child("role")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            String role = snapshot.getValue(String.class);
+                            if ("user".equalsIgnoreCase(role)) {
+                                navigateToUserScreen(role);
+                            } else {
+                                mAuth.signOut();
+                                Toast.makeText(LoginActivity.this, "Không có quyền truy cập", Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            mAuth.signOut();
+                            Toast.makeText(LoginActivity.this, "Tài khoản không hợp lệ", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Toast.makeText(LoginActivity.this, "Lỗi: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
     private void navigateToUserScreen(String role) {
         Intent intent = new Intent(this, UserActivity.class);
-        Toast.makeText(this, "Đăng nhập thành công với vai trò: " + role, Toast.LENGTH_SHORT).show();
+
         startActivity(intent);
         finish();
     }
