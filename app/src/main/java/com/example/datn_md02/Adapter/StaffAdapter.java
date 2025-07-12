@@ -1,5 +1,6 @@
 package com.example.datn_md02.Adapter;
 
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,9 +25,9 @@ public class StaffAdapter extends RecyclerView.Adapter<StaffAdapter.StaffViewHol
         void onStaffClick(User user);
     }
 
-    private List<User> originalList;
-    private List<User> filteredList;
-    private OnStaffClickListener listener;
+    private final List<User> originalList;
+    private final List<User> filteredList;
+    private final OnStaffClickListener listener;
 
     public StaffAdapter(List<User> userList, OnStaffClickListener listener) {
         this.originalList = new ArrayList<>(userList);
@@ -44,12 +45,22 @@ public class StaffAdapter extends RecyclerView.Adapter<StaffAdapter.StaffViewHol
     @Override
     public void onBindViewHolder(@NonNull StaffViewHolder holder, int position) {
         User user = filteredList.get(position);
+
+        // Hiển thị tên
         String displayName = user.getFullName() != null ? user.getFullName() : user.getName();
         holder.tvName.setText(displayName);
 
-        long timestamp = user.getLastMessageTimestamp();
-        holder.tvTimestamp.setText(timestamp > 0 ? formatTimestamp(timestamp) : "");
+        // Hiển thị thời gian nếu có
+        long timestamp = user.getTimestamp();
+        if (timestamp > 0) {
+            holder.tvTimestamp.setText(formatTimestamp(timestamp));
+            holder.tvTimestamp.setTypeface(null, Typeface.NORMAL);
+        } else {
+            holder.tvTimestamp.setText("Chưa có tin nhắn");
+            holder.tvTimestamp.setTypeface(null, Typeface.ITALIC);
+        }
 
+        // Bắt sự kiện click
         holder.itemView.setOnClickListener(v -> listener.onStaffClick(user));
     }
 
@@ -96,7 +107,11 @@ public class StaffAdapter extends RecyclerView.Adapter<StaffAdapter.StaffViewHol
     }
 
     private String formatTimestamp(long timestamp) {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
-        return sdf.format(new Date(timestamp));
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm dd/MM", Locale.getDefault());
+            return sdf.format(new Date(timestamp));
+        } catch (Exception e) {
+            return "";
+        }
     }
 }

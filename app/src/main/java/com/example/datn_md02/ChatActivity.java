@@ -39,28 +39,22 @@ public class ChatActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        // Ánh xạ view
         rvMessages = findViewById(R.id.rvMessages);
         etMessage = findViewById(R.id.etMessage);
         btnSend = findViewById(R.id.btnSend);
         tvTitle = findViewById(R.id.tvChatTitle);
 
-        // Lấy email người dùng hiện tại và người được chọn
         currentUserEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
         staffEmail = getIntent().getStringExtra("staff_email");
 
-        // Lấy full name từ Firebase Realtime Database
         loadStaffInfo();
 
-        // Khởi tạo Adapter và RecyclerView
         messageAdapter = new MessageAdapter(messageList, currentUserEmail);
         rvMessages.setLayoutManager(new LinearLayoutManager(this));
         rvMessages.setAdapter(messageAdapter);
 
-        // Tải tin nhắn
         loadMessages();
 
-        // Gửi tin nhắn khi bấm nút Gửi
         btnSend.setOnClickListener(v -> {
             String text = etMessage.getText().toString().trim();
             if (!text.isEmpty()) {
@@ -93,11 +87,16 @@ public class ChatActivity extends AppCompatActivity {
                 });
     }
 
-    private void sendMessage(String sender, String receiver, String content) {
+    private void sendMessage(String sender, String receiver, String text) {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("chats");
-        Message msg = new Message(sender, receiver, content);
+
+        long currentTime = System.currentTimeMillis();  // ⏱️ Thời gian hiện tại
+
+        Message msg = new Message(sender, receiver, text, currentTime);  // ✅ Dùng constructor đầy đủ
+
         ref.push().setValue(msg);
     }
+
 
     private void loadMessages() {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("chats");
@@ -107,7 +106,8 @@ public class ChatActivity extends AppCompatActivity {
                 messageList.clear();
                 for (DataSnapshot ds : snapshot.getChildren()) {
                     Message msg = ds.getValue(Message.class);
-                    if (msg == null || msg.getSender() == null || msg.getReceiver() == null) continue;
+                    if (msg == null || msg.getSender() == null || msg.getReceiver() == null)
+                        continue;
 
                     boolean isSenderOrReceiver =
                             (msg.getSender().equals(currentUserEmail) && msg.getReceiver().equals(staffEmail)) ||
