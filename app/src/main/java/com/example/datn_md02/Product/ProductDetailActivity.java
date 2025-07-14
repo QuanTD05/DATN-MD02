@@ -8,6 +8,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -19,6 +20,11 @@ import com.example.datn_md02.Model.Review;
 import com.example.datn_md02.Model.Variant;
 import com.example.datn_md02.Model.VariantDisplay;
 import com.example.datn_md02.R;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -40,7 +46,6 @@ public class ProductDetailActivity extends AppCompatActivity {
     private VariantAdapter variantAdapter;
     private String currentImageUrl = "";
 
-    // ✅ THÊM PHƯƠNG THỨC newIntent() để gọi từ nơi khác
     public static Intent newIntent(Context context, Product product) {
         Intent intent = new Intent(context, ProductDetailActivity.class);
         intent.putExtra("product", product);
@@ -110,18 +115,9 @@ public class ProductDetailActivity extends AppCompatActivity {
         tvDescription.setText(product.getDescription());
         tvQuantity.setText(String.valueOf(quantity));
 
-        Variant firstVariant = getFirstVariant(product.getVariants());
-        if (firstVariant != null) {
-            unitPrice = firstVariant.getPrice();
-            tvPrice.setText(String.format(Locale.getDefault(), "%.0f₫", unitPrice));
-        } else {
-            unitPrice = 0.0;
-            tvPrice.setText("N/A");
-        }
-
         updateTotal();
         showCreatedTime(product.getCreated());
-        showRating(product.getReviews());
+        loadReviewsFromFirebase(product.getProductId());
         displayVariants(product.getVariants());
     }
 
@@ -132,7 +128,7 @@ public class ProductDetailActivity extends AppCompatActivity {
 
     private void showCreatedTime(Date created) {
         if (created == null) {
-            tvCreated.setText("Không rõ thời gian");
+            tvCreated.setText("");
             return;
         }
 
@@ -152,30 +148,6 @@ public class ProductDetailActivity extends AppCompatActivity {
         tvCreated.setText(result);
     }
 
-    private void showRating(List<Review> reviews) {
-        if (reviews == null || reviews.isEmpty()) {
-            tvRating.setText("Chưa có đánh giá");
-            return;
-        }
-
-        double totalRating = 0;
-        for (Review r : reviews) {
-            totalRating += r.getRating();
-        }
-        double avg = totalRating / reviews.size();
-        tvRating.setText(String.format(Locale.getDefault(), "%.1f/5 (%d đánh giá)", avg, reviews.size()));
-    }
-
-    private Variant getFirstVariant(Map<String, Map<String, Variant>> variantsMap) {
-        if (variantsMap == null || variantsMap.isEmpty()) return null;
-        for (Map<String, Variant> colorMap : variantsMap.values()) {
-            for (Variant variant : colorMap.values()) {
-                return variant;
-            }
-        }
-        return null;
-    }
-
     private void displayVariants(Map<String, Map<String, Variant>> variantsMap) {
         variantDisplayList.clear();
         if (variantsMap != null) {
@@ -192,6 +164,50 @@ public class ProductDetailActivity extends AppCompatActivity {
             }
         }
         variantAdapter.notifyDataSetChanged();
+
+        if (!variantDisplayList.isEmpty()) {
+            VariantDisplay first = variantDisplayList.get(0);
+            unitPrice = first.price;
+            currentImageUrl = first.imageUrl;
+
+            tvPrice.setText(String.format(Locale.getDefault(), "%.0f₫", unitPrice));
+            updateTotal();
+
+            Glide.with(this)
+                    .load(currentImageUrl)
+                    .placeholder(R.drawable.haha)
+                    .into(imgProduct);
+        }
+    }
+
+    private void loadReviewsFromFirebase(String productId) {
+        DatabaseReference reviewRef = FirebaseDatabase.getInstance().getReference("reviews").child(productId);
+        reviewRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                double total = 0;
+                int count = 0;
+                for (DataSnapshot reviewSnap : snapshot.getChildren()) {
+                    Review review = reviewSnap.getValue(Review.class);
+                    if (review != null && review.getRating() > 0) {
+                        total += review.getRating();
+                        count++;
+                    }
+                }
+
+                if (count > 0) {
+                    double avg = total / count;
+                    tvRating.setText(String.format(Locale.getDefault(), "%.1f/5 (%d đánh giá)", avg, count));
+                } else {
+                    tvRating.setText("⭐ Chưa có đánh giá");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                tvRating.setText("Không tải được đánh giá");
+            }
+        });
     }
 
     private void setEventHandlers() {
@@ -213,12 +229,17 @@ public class ProductDetailActivity extends AppCompatActivity {
 
         btnAddToCart.setOnClickListener(v -> {
             Log.d("ProductDetail", "🛒 Thêm vào giỏ: " + product.getName() + ", SL: " + quantity);
-            // TODO: xử lý lưu vào giỏ hàng
         });
 
         imgProduct.setOnClickListener(v -> {
             Intent intent = new Intent(ProductDetailActivity.this, FullscreenImageActivity.class);
             intent.putExtra("imageUrl", currentImageUrl);
+            startActivity(intent);
+        });
+
+        tvRating.setOnClickListener(v -> {
+            Intent intent = new Intent(ProductDetailActivity.this, AllReviewActivity.class);
+            intent.putExtra("productId", product.getProductId());
             startActivity(intent);
         });
     }

@@ -69,7 +69,7 @@ public class HomeFragment extends Fragment {
         productRef = FirebaseDatabase.getInstance().getReference("product");
         loadPopularProducts();
 
-        // Tìm kiếm
+        // Tìm kiếm + phân loại
         setupSearchAndCategory(view);
 
         return view;
@@ -89,17 +89,28 @@ public class HomeFragment extends Fragment {
             return true;
         });
 
-        view.findViewById(R.id.itemCategoryBan).setOnClickListener(v -> openAllProductWithSearch("bàn"));
-        view.findViewById(R.id.itemCategoryGhe).setOnClickListener(v -> openAllProductWithSearch("ghế"));
-        view.findViewById(R.id.itemCategoryTu).setOnClickListener(v -> openAllProductWithSearch("tủ"));
-        view.findViewById(R.id.itemCategoryGiuong).setOnClickListener(v -> openAllProductWithSearch("giường"));
-        view.findViewById(R.id.itemCategoryKe).setOnClickListener(v -> openAllProductWithSearch("kệ"));
+        // Các danh mục nội thất
+        view.findViewById(R.id.itemCategoryBan).setOnClickListener(v -> openAllProductWithCategory("ban", "bàn"));
+        view.findViewById(R.id.itemCategoryGhe).setOnClickListener(v -> openAllProductWithCategory("ghe", "ghế"));
+        view.findViewById(R.id.itemCategoryTu).setOnClickListener(v -> openAllProductWithCategory("tu", "tủ"));
+        view.findViewById(R.id.itemCategoryGiuong).setOnClickListener(v -> openAllProductWithCategory("giuong", "giường"));
+        view.findViewById(R.id.itemCategoryKe).setOnClickListener(v -> openAllProductWithCategory("ke", "kệ"));
     }
 
+    // Mở AllProductActivity với từ khoá tìm kiếm
     private void openAllProductWithSearch(String keyword) {
         Log.d(TAG, "🔍 Mở AllProductActivity với từ khóa: " + keyword);
         Intent intent = new Intent(getContext(), AllProductActivity.class);
         intent.putExtra("keyword", keyword.toLowerCase(Locale.ROOT));
+        startActivity(intent);
+    }
+
+    // Mở AllProductActivity với category cụ thể (dùng chung layout nhưng tiêu đề khác)
+    private void openAllProductWithCategory(String categoryId, String categoryName) {
+        Log.d(TAG, "📂 Mở AllProductActivity với loại: " + categoryName);
+        Intent intent = new Intent(getContext(), AllProductActivity.class);
+        intent.putExtra("categoryId", categoryId);       // để lọc danh sách
+        intent.putExtra("categoryName", categoryName);   // để hiển thị tiêu đề
         startActivity(intent);
     }
 

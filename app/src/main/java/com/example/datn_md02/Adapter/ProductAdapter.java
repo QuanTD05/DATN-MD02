@@ -115,7 +115,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
     }
 
     private String getTimeAgo(Date created) {
-        if (created == null) return "Không rõ";
+        if (created == null) return "";
         long now = System.currentTimeMillis();
         long diff = now - created.getTime();
 

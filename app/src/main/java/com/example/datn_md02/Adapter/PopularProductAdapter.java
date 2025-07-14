@@ -16,6 +16,11 @@ import com.example.datn_md02.Model.Product;
 import com.example.datn_md02.Model.Review;
 import com.example.datn_md02.Model.Variant;
 import com.example.datn_md02.R;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.Date;
 import java.util.List;
@@ -55,20 +60,19 @@ public class PopularProductAdapter extends RecyclerView.Adapter<PopularProductAd
         double price = getFirstVariantPrice(product);
         holder.tvPrice.setText(price > 0 ? String.format(Locale.getDefault(), "%.0f₫", price) : "N/A");
 
-        // ✅ Rating trung bình
-        float avgRating = getAverageRating(product.getReviews());
-        holder.tvRating.setText(avgRating > 0 ? String.format(Locale.getDefault(), "%.1f/5", avgRating) : "Chưa có");
-
         // ✅ Thời gian tạo
         holder.tvTime.setText(getTimeAgo(product.getCreated()));
 
-        // ✅ Ảnh
+        // ✅ Ảnh sản phẩm
         Glide.with(context)
                 .load(product.getImageUrl())
                 .placeholder(R.drawable.haha)
                 .into(holder.imageProduct);
 
-        // ✅ Click
+        // ✅ Load số sao từ Firebase
+        loadAverageRatingFromFirebase(holder, product.getProductId());
+
+        // ✅ Sự kiện click
         holder.itemView.setOnClickListener(v -> listener.onProductClick(product));
     }
 
@@ -103,18 +107,38 @@ public class PopularProductAdapter extends RecyclerView.Adapter<PopularProductAd
         return 0.0;
     }
 
-    private float getAverageRating(List<Review> reviews) {
-        if (reviews == null || reviews.isEmpty()) return 0f;
+    private void loadAverageRatingFromFirebase(ViewHolder holder, String productId) {
+        DatabaseReference reviewRef = FirebaseDatabase.getInstance().getReference("reviews").child(productId);
+        reviewRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                double total = 0;
+                int count = 0;
+                for (DataSnapshot reviewSnap : snapshot.getChildren()) {
+                    Review review = reviewSnap.getValue(Review.class);
+                    if (review != null && review.getRating() > 0) {
+                        total += review.getRating();
+                        count++;
+                    }
+                }
 
-        float total = 0f;
-        for (Review review : reviews) {
-            total += review.getRating();
-        }
-        return total / reviews.size();
+                if (count > 0) {
+                    double avg = total / count;
+                    holder.tvRating.setText(String.format(Locale.getDefault(), "%.1f/5", avg));
+                } else {
+                    holder.tvRating.setText("Chưa có");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                holder.tvRating.setText("Lỗi");
+            }
+        });
     }
 
     private String getTimeAgo(Date created) {
-        if (created == null) return "Không rõ";
+        if (created == null) return "";
         long now = System.currentTimeMillis();
         long diff = now - created.getTime();
 
