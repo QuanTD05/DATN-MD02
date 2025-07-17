@@ -2,7 +2,6 @@
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-
     android:layout_height="wrap_content"
     android:layout_marginEnd="12dp"
     app:cardCornerRadius="12dp"
@@ -36,8 +35,7 @@
             android:clipToPadding="false"
             android:clipChildren="false">
 
-
-        <!-- Tên và giá -->
+            <!-- Tên và giá -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -69,24 +67,19 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:layout_marginTop="2dp">
 
+                <!-- ✅ Chỉ giữ TextView hiển thị rating + số lượt đánh giá -->
                 <TextView
                     android:id="@+id/tvRating"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="4.5/5"
+                    android:text="4.5★ (3 đánh giá)"
                     android:textColor="@color/black"
                     android:textSize="12sp" />
 
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:layout_marginStart="4dp"
-                    android:src="@drawable/ic_star"
-                    app:tint="@color/star" />
-
-                <!-- ✅ Thêm thời gian hiển thị -->
+                <!-- Thời gian -->
                 <TextView
                     android:id="@+id/tvTime"
                     android:layout_width="wrap_content"
@@ -96,18 +89,13 @@
                     android:textColor="@color/black"
                     android:layout_marginStart="8dp" />
 
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:layout_marginStart="2dp"
-                    app:tint="@color/text_gray" />
-
-                <!-- Button thêm -->
+                <!-- Nút thêm -->
                 <FrameLayout
                     android:layout_width="32dp"
                     android:layout_height="32dp"
                     android:layout_gravity="end"
                     android:layout_marginStart="10dp"
+
                     android:background="@drawable/bg_circle_green">
 
                     <ImageView

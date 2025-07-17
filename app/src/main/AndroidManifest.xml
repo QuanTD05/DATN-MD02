@@ -16,7 +16,19 @@
         android:theme="@style/Theme.DATN_MD02"
         tools:targetApi="31">
         <activity
-            android:name=".Adapter.ReviewAdapter"
+            android:name=".Cart.CartActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Fragment.CartFragment"
+            android:exported="false" />
+        <activity
+            android:name=".Adapter.CartAdapter"
+            android:exported="false" />
+        <activity
+            android:name=".Adapter.ReviewImageAdapter"
+            android:exported="false" />
+        <activity
+            android:name=".Product.ReviewListActivity"
             android:exported="false" />
         <activity
             android:name=".Product.AllReviewActivity"

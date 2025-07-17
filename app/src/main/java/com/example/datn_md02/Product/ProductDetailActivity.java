@@ -15,97 +15,75 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.datn_md02.Adapter.VariantAdapter;
+import com.example.datn_md02.Cart.CartActivity;
+import com.example.datn_md02.Model.CartItem;
 import com.example.datn_md02.Model.Product;
 import com.example.datn_md02.Model.Review;
 import com.example.datn_md02.Model.Variant;
 import com.example.datn_md02.Model.VariantDisplay;
 import com.example.datn_md02.R;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.database.*;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class ProductDetailActivity extends AppCompatActivity {
 
-    private ImageView imgProduct, btnBack, btnCart, btnFavorite, btnIncrease, btnDecrease;
-    private TextView tvName, tvPrice, tvDescription, tvRating, tvQuantity, tvTotal, tvCreated;
-    private Button btnAddToCart;
-    private RecyclerView recyclerVariants;
-
-    private int quantity = 1;
-    private double unitPrice = 0.0;
     private Product product;
-    private List<VariantDisplay> variantDisplayList = new ArrayList<>();
-    private VariantAdapter variantAdapter;
-    private String currentImageUrl = "";
+    private ImageView imgProduct, btnBack;
+    private Button btnAddToCart;
+    private TextView tvName, tvPrice, tvQuantity, tvTotal, tvDescription, tvCreated, tvRating;
+    private RecyclerView recyclerViewVariant;
 
-    public static Intent newIntent(Context context, Product product) {
-        Intent intent = new Intent(context, ProductDetailActivity.class);
-        intent.putExtra("product", product);
-        return intent;
-    }
+    private ImageView btnIncrease, btnDecrease;
+
+    private VariantAdapter variantAdapter;
+    private List<VariantDisplay> variantDisplayList = new ArrayList<>();
+
+    private double unitPrice = 0.0;
+    private int quantity = 1;
+    private String currentImageUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_product_detail);
 
-        initViews();
+        initView();
 
         product = (Product) getIntent().getSerializableExtra("product");
-        if (product == null) {
-            Log.e("ProductDetail", "❌ Không nhận được sản phẩm từ Intent");
-            finish();
-            return;
+        if (product != null) {
+            showProductDetails();
+            loadReviewsFromFirebase(product.getProductId());
         }
 
-        showProductDetails();
         setEventHandlers();
     }
 
-    private void initViews() {
+    private void initView() {
         imgProduct = findViewById(R.id.imgProduct);
-        btnBack = findViewById(R.id.btnBack);
-        btnCart = findViewById(R.id.btnCart);
-        btnFavorite = findViewById(R.id.btnFavorite);
-        btnIncrease = findViewById(R.id.btnIncrease);
-        btnDecrease = findViewById(R.id.btnDecrease);
         tvName = findViewById(R.id.tvName);
         tvPrice = findViewById(R.id.tvPrice);
-        tvDescription = findViewById(R.id.tvDescription);
-        tvRating = findViewById(R.id.tvRating);
         tvQuantity = findViewById(R.id.tvQuantity);
         tvTotal = findViewById(R.id.tvTotal);
+        tvDescription = findViewById(R.id.tvDescription);
         tvCreated = findViewById(R.id.tvCreated);
+        tvRating = findViewById(R.id.tvRating);
+        btnBack = findViewById(R.id.btnBack);
+        btnIncrease = findViewById(R.id.btnIncrease);
+        btnDecrease = findViewById(R.id.btnDecrease);
         btnAddToCart = findViewById(R.id.btnAddToCart);
-        recyclerVariants = findViewById(R.id.recyclerVariants);
 
-        recyclerVariants.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-
-        variantAdapter = new VariantAdapter(this, variantDisplayList, selectedVariant -> {
-            unitPrice = selectedVariant.price;
-            tvPrice.setText(String.format(Locale.getDefault(), "%.0f₫", unitPrice));
-            updateTotal();
-
-            currentImageUrl = selectedVariant.imageUrl;
-            Glide.with(ProductDetailActivity.this)
-                    .load(currentImageUrl)
-                    .placeholder(R.drawable.haha)
-                    .into(imgProduct);
-        });
-
-        recyclerVariants.setAdapter(variantAdapter);
+        recyclerViewVariant = findViewById(R.id.recyclerVariants);
+        recyclerViewVariant.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        variantAdapter = new VariantAdapter(variantDisplayList, this::onVariantSelected);
+        recyclerViewVariant.setAdapter(variantAdapter);
     }
 
     private void showProductDetails() {
         currentImageUrl = product.getImageUrl();
+        unitPrice = product.getPrice();
+
         Glide.with(this)
                 .load(currentImageUrl)
                 .placeholder(R.drawable.haha)
@@ -114,74 +92,48 @@ public class ProductDetailActivity extends AppCompatActivity {
         tvName.setText(product.getName());
         tvDescription.setText(product.getDescription());
         tvQuantity.setText(String.valueOf(quantity));
-
+        tvPrice.setText(String.format(Locale.getDefault(), "%.0f₫", unitPrice));
         updateTotal();
-        showCreatedTime(product.getCreated());
-        loadReviewsFromFirebase(product.getProductId());
-        displayVariants(product.getVariants());
-    }
 
-    private void updateTotal() {
-        double total = unitPrice * quantity;
-        tvTotal.setText(String.format(Locale.getDefault(), "Tổng tiền: %.0f₫", total));
-    }
-
-    private void showCreatedTime(Date created) {
-        if (created == null) {
-            tvCreated.setText("");
-            return;
+        if (product.getCreated() != null) {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            tvCreated.setText(sdf.format(product.getCreated()));
         }
 
-        long now = System.currentTimeMillis();
-        long diff = now - created.getTime();
-
-        long minutes = diff / (1000 * 60);
-        long hours = minutes / 60;
-        long days = hours / 24;
-
-        String result;
-        if (minutes < 1) result = "Vừa xong";
-        else if (minutes < 60) result = minutes + " phút trước";
-        else if (hours < 24) result = hours + " giờ trước";
-        else result = days + " ngày trước";
-
-        tvCreated.setText(result);
+        displayVariants(product.getVariants());
     }
 
     private void displayVariants(Map<String, Map<String, Variant>> variantsMap) {
         variantDisplayList.clear();
+
         if (variantsMap != null) {
-            for (String size : variantsMap.keySet()) {
-                Map<String, Variant> colorMap = variantsMap.get(size);
-                if (colorMap != null) {
-                    for (String color : colorMap.keySet()) {
-                        Variant variant = colorMap.get(color);
-                        if (variant != null) {
-                            variantDisplayList.add(new VariantDisplay(color, size, variant.getPrice(), variant.getQuantity(), variant.getImageUrl()));
-                        }
-                    }
+            for (Map.Entry<String, Map<String, Variant>> sizeEntry : variantsMap.entrySet()) {
+                String size = sizeEntry.getKey();
+
+                for (Map.Entry<String, Variant> colorEntry : sizeEntry.getValue().entrySet()) {
+                    String color = colorEntry.getKey();
+                    Variant variant = colorEntry.getValue();
+
+                    variant.setSize(size);
+                    variant.setColor(color);
+
+                    variantDisplayList.add(new VariantDisplay(
+                            size,
+                            color,
+                            variant.getPrice(),
+                            variant.getQuantity(),
+                            variant.getImageUrl()
+                    ));
                 }
             }
         }
+
         variantAdapter.notifyDataSetChanged();
-
-        if (!variantDisplayList.isEmpty()) {
-            VariantDisplay first = variantDisplayList.get(0);
-            unitPrice = first.price;
-            currentImageUrl = first.imageUrl;
-
-            tvPrice.setText(String.format(Locale.getDefault(), "%.0f₫", unitPrice));
-            updateTotal();
-
-            Glide.with(this)
-                    .load(currentImageUrl)
-                    .placeholder(R.drawable.haha)
-                    .into(imgProduct);
-        }
     }
 
     private void loadReviewsFromFirebase(String productId) {
         DatabaseReference reviewRef = FirebaseDatabase.getInstance().getReference("reviews").child(productId);
+
         reviewRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -210,6 +162,26 @@ public class ProductDetailActivity extends AppCompatActivity {
         });
     }
 
+    private void updateTotal() {
+        double total = unitPrice * quantity;
+        tvTotal.setText(String.format(Locale.getDefault(), "%.0f₫", total));
+    }
+
+    private void onVariantSelected(VariantDisplay variant) {
+        unitPrice = variant.price;
+        currentImageUrl = (variant.imageUrl != null && !variant.imageUrl.isEmpty())
+                ? variant.imageUrl
+                : product.getImageUrl();
+
+        tvPrice.setText(String.format(Locale.getDefault(), "%.0f₫", unitPrice));
+        updateTotal();
+
+        Glide.with(this)
+                .load(currentImageUrl)
+                .placeholder(R.drawable.haha)
+                .into(imgProduct);
+    }
+
     private void setEventHandlers() {
         btnBack.setOnClickListener(v -> finish());
 
@@ -229,6 +201,18 @@ public class ProductDetailActivity extends AppCompatActivity {
 
         btnAddToCart.setOnClickListener(v -> {
             Log.d("ProductDetail", "🛒 Thêm vào giỏ: " + product.getName() + ", SL: " + quantity);
+
+            CartItem cartItem = new CartItem(
+                    product.getProductId(),
+                    product.getName(),
+                    currentImageUrl,
+                    unitPrice,
+                    quantity
+            );
+
+            Intent intent = new Intent(ProductDetailActivity.this, CartActivity.class);
+            intent.putExtra("cartItem", cartItem);
+            startActivity(intent);
         });
 
         imgProduct.setOnClickListener(v -> {
@@ -238,9 +222,15 @@ public class ProductDetailActivity extends AppCompatActivity {
         });
 
         tvRating.setOnClickListener(v -> {
-            Intent intent = new Intent(ProductDetailActivity.this, AllReviewActivity.class);
-            intent.putExtra("productId", product.getProductId());
+            Intent intent = new Intent(ProductDetailActivity.this, ReviewListActivity.class);
+            intent.putExtra("product", product);
             startActivity(intent);
         });
+    }
+
+    public static Intent newIntent(Context context, Product product) {
+        Intent intent = new Intent(context, ProductDetailActivity.class);
+        intent.putExtra("product", product);
+        return intent;
     }
 }

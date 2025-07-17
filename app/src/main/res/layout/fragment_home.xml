@@ -322,5 +322,43 @@
             android:layout_marginTop="8dp"
             android:nestedScrollingEnabled="false" />
 
+        <!-- Vạch ngăn -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="16dp"
+            android:background="@color/text_gray" />
+
+        <!-- Tất cả sản phẩm -->
+        <FrameLayout
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/tvAllProduct"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tất cả sản phẩm"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="@color/error"
+                android:layout_gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="4dp" />
+
+        </FrameLayout>
+
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerAllProduct"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:nestedScrollingEnabled="false" />
+
+
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

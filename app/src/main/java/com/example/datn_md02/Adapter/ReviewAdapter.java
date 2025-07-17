@@ -8,6 +8,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -46,7 +47,7 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
         // Nội dung đánh giá
         holder.tvReviewContent.setText(review.getComment());
 
-        // Rating dưới dạng sao
+        // Rating
         holder.tvRating.setText(getStars(review.getRating()));
 
         // Thời gian đánh giá
@@ -56,14 +57,14 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
             holder.tvReviewTime.setText("Không rõ thời gian");
         }
 
-        // Avatar người dùng
+        // Avatar
         Glide.with(context)
                 .load(review.getUserAvatar())
                 .placeholder(R.drawable.haha)
                 .circleCrop()
                 .into(holder.imgAvatar);
 
-        // Tên sản phẩm và ảnh nhỏ (nếu có)
+        // Tên sản phẩm & ảnh nhỏ
         holder.tvProductName.setText(review.getProductName());
         Glide.with(context)
                 .load(review.getProductImage())
@@ -71,8 +72,16 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
                 .centerCrop()
                 .into(holder.imgProductSmall);
 
-        // TODO: Nếu có ảnh đính kèm, bạn có thể xử lý ở đây
-        // holder.recyclerImages.setAdapter(...)
+        // Ảnh đính kèm (nếu có)
+        List<String> imageUrls = review.getImageUrls();
+        if (imageUrls != null && !imageUrls.isEmpty()) {
+            holder.recyclerImages.setVisibility(View.VISIBLE);
+            ReviewImageAdapter imageAdapter = new ReviewImageAdapter(context, imageUrls);
+            holder.recyclerImages.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
+            holder.recyclerImages.setAdapter(imageAdapter);
+        } else {
+            holder.recyclerImages.setVisibility(View.GONE);
+        }
     }
 
     @Override

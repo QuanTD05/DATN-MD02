@@ -2,6 +2,7 @@ package com.example.datn_md02.Model;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 public class Review implements Serializable {
 
@@ -12,9 +13,12 @@ public class Review implements Serializable {
     private double rating;
     private long timestamp;
 
-    private String productName;     // 👉 THÊM MỚI
-    private String productImage;    // 👉 THÊM MỚI
+    private String productName;     // 👉 Tên sản phẩm được đánh giá
+    private String productImage;    // 👉 Ảnh sản phẩm nhỏ
 
+    private List<String> imageUrls; // 👉 Danh sách ảnh đính kèm
+
+    // Constructors
     public Review() {
     }
 
@@ -27,7 +31,7 @@ public class Review implements Serializable {
         this.timestamp = timestamp;
     }
 
-    // Getters and Setters
+    // Getters & Setters
 
     public String getUserId() {
         return userId;
@@ -77,8 +81,6 @@ public class Review implements Serializable {
         this.timestamp = timestamp;
     }
 
-    // 👉 THÊM GET/SET CHO TÊN VÀ ẢNH SẢN PHẨM
-
     public String getProductName() {
         return productName;
     }
@@ -93,6 +95,14 @@ public class Review implements Serializable {
 
     public void setProductImage(String productImage) {
         this.productImage = productImage;
+    }
+
+    public List<String> getImageUrls() {
+        return imageUrls;
+    }
+
+    public void setImageUrls(List<String> imageUrls) {
+        this.imageUrls = imageUrls;
     }
 
     // Trả về Date từ timestamp

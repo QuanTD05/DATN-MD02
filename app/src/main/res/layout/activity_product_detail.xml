@@ -5,17 +5,14 @@
     android:layout_height="match_parent"
     android:background="@color/white">
 
-    <!-- Nội dung chính cuộn được -->
-
-    <!-- Thanh cố định dưới đáy -->
+    <!-- Nội dung chính -->
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/layoutBottom"
-        android:layout_marginBottom="-1dp"
-        android:clipToPadding="false"
-        android:paddingBottom="100dp">
+        android:paddingBottom="100dp"
+        android:clipToPadding="false">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -23,14 +20,15 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Header -->
+            <!-- Header với ảnh -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="240dp">
 
+                <!-- Ảnh sản phẩm -->
                 <ImageView
                     android:id="@+id/imgProduct"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:scaleType="centerCrop"
                     app:layout_constraintTop_toTopOf="parent"
@@ -38,7 +36,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent" />
 
-
+                <!-- Nút quay lại -->
                 <ImageView
                     android:id="@+id/btnBack"
                     android:layout_width="32dp"
@@ -47,9 +45,10 @@
                     android:background="@drawable/gray_border_box"
                     android:padding="6dp"
                     android:src="@drawable/ic_back"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
 
+                <!-- Nút giỏ hàng -->
                 <ImageView
                     android:id="@+id/btnCart"
                     android:layout_width="32dp"
@@ -58,17 +57,17 @@
                     android:background="@drawable/bg_circle_gray"
                     android:padding="6dp"
                     android:src="@drawable/ic_cart_white"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- Tên + thời gian -->
+            <!-- Tên + thời gian tạo -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
                 <TextView
                     android:id="@+id/tvName"
@@ -89,7 +88,7 @@
                     android:textSize="14sp" />
             </LinearLayout>
 
-            <!-- Giá -->
+            <!-- Giá sản phẩm -->
             <TextView
                 android:id="@+id/tvPrice"
                 android:layout_width="wrap_content"
@@ -121,8 +120,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -166,9 +165,7 @@
                     android:id="@+id/btnFavorite"
                     android:layout_width="32dp"
                     android:layout_height="32dp"
-                    android:background="@drawable/bg_circle_gray"
-                    android:padding="6dp"
-                    android:src="@drawable/ic_heart" />
+                    android:padding="6dp" />
             </LinearLayout>
 
             <!-- Đánh giá -->
@@ -184,8 +181,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -223,6 +220,7 @@
         </LinearLayout>
     </ScrollView>
 
+    <!-- Bottom bar cố định -->
     <LinearLayout
         android:id="@+id/layoutBottom"
         android:layout_width="match_parent"

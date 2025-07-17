@@ -1,6 +1,5 @@
 package com.example.datn_md02.Adapter;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,17 +19,15 @@ import java.util.Locale;
 public class VariantAdapter extends RecyclerView.Adapter<VariantAdapter.ViewHolder> {
 
     private final List<VariantDisplay> variantList;
-    private final Context context;
     private final OnVariantClickListener listener;
 
-    // ✅ Giao diện callback
+    // ✅ Giao diện callback khi click vào biến thể
     public interface OnVariantClickListener {
         void onVariantClick(VariantDisplay variant);
     }
 
-    // ✅ Constructor có listener
-    public VariantAdapter(Context context, List<VariantDisplay> variantList, OnVariantClickListener listener) {
-        this.context = context;
+    // ✅ Constructor
+    public VariantAdapter(List<VariantDisplay> variantList, OnVariantClickListener listener) {
         this.variantList = variantList;
         this.listener = listener;
     }
@@ -51,7 +48,8 @@ public class VariantAdapter extends RecyclerView.Adapter<VariantAdapter.ViewHold
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_variant, parent, false);
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_variant, parent, false);
         return new ViewHolder(view);
     }
 
@@ -59,16 +57,22 @@ public class VariantAdapter extends RecyclerView.Adapter<VariantAdapter.ViewHold
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         VariantDisplay item = variantList.get(position);
 
-        holder.tvSizeColor.setText(item.size + " - " + item.color);
-        holder.tvVariantPrice.setText(String.format(Locale.getDefault(), "Giá: %,dđ", (long) item.price));
-        holder.tvVariantQty.setText("SL: " + item.quantity);
+        // ✅ Gộp Size và Color
+        String size = item.getSize() != null ? item.getSize() : "N/A";
+        String color = item.getColor() != null ? item.getColor() : "N/A";
+        holder.tvSizeColor.setText(size + " - " + color);
 
-        Glide.with(context)
-                .load(item.imageUrl)
+        // ✅ Hiển thị giá và tồn kho
+        holder.tvVariantPrice.setText(String.format(Locale.getDefault(), "Giá: %,d₫", (long) item.getPrice()));
+        holder.tvVariantQty.setText("SL: " + item.getQuantity());
+
+        // ✅ Load ảnh
+        Glide.with(holder.itemView.getContext())
+                .load(item.getImageUrl())
                 .placeholder(R.drawable.haha)
                 .into(holder.imgVariant);
 
-        // ✅ Gọi callback khi click vào biến thể
+        // ✅ Bắt sự kiện click
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onVariantClick(item);
