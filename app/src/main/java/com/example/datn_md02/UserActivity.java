@@ -6,7 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import com.example.datn_md02.Fragment.ContactFragment;
-import com.example.datn_md02.Fragment.FavoriteFragment;
+import com.example.datn_md02.Fragment.NotificationFragment;
 import com.example.datn_md02.Fragment.HomeFragment;
 import com.example.datn_md02.Fragment.ProfileFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -32,7 +32,7 @@ public class UserActivity extends AppCompatActivity {
             if (itemId == R.id.nav_home) {
                 selectedFragment = new HomeFragment();
             } else if (itemId == R.id.nav_favorite) {
-                selectedFragment = new FavoriteFragment();
+                selectedFragment = new NotificationFragment();
             } else if (itemId == R.id.nav_contact) {
                 selectedFragment = new ContactFragment();
             } else if (itemId == R.id.nav_profile) {

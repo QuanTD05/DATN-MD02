@@ -1,8 +1,37 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
+
     <!-- Base application theme. -->
     <style name="Base.Theme.DATN_MD02" parent="Theme.Material3.Light.NoActionBar">
-        <!-- Customize your light theme here. -->
+        <!-- ✅ Bỏ hiệu ứng mặc định khi click -->
+        <item name="colorControlActivated">@android:color/transparent</item>
+        <item name="colorControlHighlight">@android:color/transparent</item>
+        <item name="colorControlNormal">@android:color/transparent</item>
+
+        <!-- ✅ Loại bỏ màu tím trên status bar -->
+        <item name="android:statusBarColor">#F5F5DC</item>
+        <item name="android:windowLightStatusBar">true</item>
+
+        <!-- ✅ Nền chung app -->
+        <item name="android:colorBackground">#F5F5DC</item>
+
+        <!-- ✅ Ripple mặc định -->
+        <item name="android:colorEdgeEffect">@android:color/transparent</item>
+
+        <!-- ✅ Tránh màu tím hệ thống -->
+        <item name="colorPrimary">@android:color/black</item>
+        <item name="colorAccent">@android:color/black</item>
+
+        <!-- ✅ Checkbox dùng drawable custom -->
+        <item name="android:colorButtonNormal">@android:color/transparent</item>
+        <item name="android:buttonStyle">@style/CustomCheckbox</item>
     </style>
 
+    <!-- Theme thực tế dùng trong Manifest -->
     <style name="Theme.DATN_MD02" parent="Base.Theme.DATN_MD02" />
+
+    <!-- Style riêng cho checkbox -->
+    <style name="CustomCheckbox" parent="@android:style/Widget.CompoundButton.CheckBox">
+        <item name="android:button">@drawable/custom_checkbox</item>
+    </style>
+
 </resources>

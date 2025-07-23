@@ -19,5 +19,5 @@
         android:layout_alignParentBottom="true"
         app:menu="@menu/bottom_nav_menu_user"
         app:labelVisibilityMode="labeled"
-        android:background="?android:attr/windowBackground" />
+        android:background="#E5F4E5" />
 </RelativeLayout>

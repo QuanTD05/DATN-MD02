@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F5DC"> <!-- Màu nền be nhạt -->
+    android:background="#F5F5DC">
 
-    <!-- Ảnh tràn đầu -->
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="360dp"
         android:scaleType="centerCrop"
         android:src="@drawable/logost" />
 
-    <!-- Phần nội dung text ở giữa -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -42,7 +41,19 @@
             android:gravity="center" />
     </LinearLayout>
 
-    <!-- Nút GET STARTED dưới cùng -->
+    <androidx.appcompat.widget.AppCompatCheckBox
+        android:id="@+id/cbPermission"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:button="@drawable/custom_checkbox"
+        android:background="@android:color/transparent"
+        android:text="Tôi đồng ý cấp quyền truy cập thông báo và hình ảnh"
+        android:textColor="#000000"
+        android:layout_marginBottom="12dp" />
+
+
+
     <Button
         android:id="@+id/btnContinue"
         android:layout_width="match_parent"
