@@ -2,68 +2,39 @@
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-
     android:layout_height="wrap_content"
-    android:layout_marginEnd="12dp"
+    android:layout_margin="8dp"
     app:cardCornerRadius="12dp"
-    app:cardElevation="4dp"
-    android:foreground="?attr/selectableItemBackground">
+    app:cardElevation="6dp"
+    android:foreground="?attr/selectableItemBackground"
+    android:backgroundTint="@android:color/white">
 
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="@android:color/white">
 
-        <!-- Hình ảnh sản phẩm -->
+        <!-- Ảnh sản phẩm -->
         <ImageView
             android:id="@+id/imageProduct"
             android:layout_width="match_parent"
-            android:layout_height="140dp"
+            android:layout_height="160dp"
             android:scaleType="centerCrop"
             android:src="@drawable/hehe"
+            android:contentDescription="Ảnh sản phẩm"
             android:background="@color/white"
-            android:cropToPadding="true"
-            android:adjustViewBounds="true"
-            android:padding="4dp" />
+            android:adjustViewBounds="true" />
 
-        <!-- Thông tin sản phẩm -->
+        <!-- Nội dung -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#F1F1F1"
             android:orientation="vertical"
-            android:padding="8dp"
-            android:clipToPadding="false"
-            android:clipChildren="false">
+            android:padding="12dp"
+            android:background="#F9F9F9">
 
             <!-- Tên và giá -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="4dp">
-
-                <TextView
-                    android:id="@+id/tvName"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:text="Margherita"
-                    android:textColor="@color/black"
-                    android:textStyle="bold"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/tvPrice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="10.99$"
-                    android:textColor="@color/highlight"
-                    android:textSize="14sp" />
-            </LinearLayout>
-
-            <!-- Rating + Time + Button -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -71,44 +42,63 @@
                 android:gravity="center_vertical">
 
                 <TextView
+                    android:id="@+id/tvName"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="Bàn Cafe Gỗ Tự Nhiên"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+                <TextView
+                    android:id="@+id/tvPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="1150000₫"
+                    android:textColor="@color/highlight"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Rating, Time, Add button -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="6dp">
+
+                <TextView
                     android:id="@+id/tvRating"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="4.5/5"
-                    android:textColor="@color/black"
+                    android:text="4.5★ (3 đánh giá)"
+                    android:textColor="@color/text_gray"
                     android:textSize="12sp" />
 
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:layout_marginStart="4dp"
-                    android:src="@drawable/ic_star"
-                    app:tint="@color/star" />
-
-                <!-- ✅ Thêm thời gian hiển thị -->
                 <TextView
                     android:id="@+id/tvTime"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="15 phút trước"
+                    android:text="Hôm nay"
+                    android:textColor="@color/text_gray"
                     android:textSize="12sp"
-                    android:textColor="@color/black"
                     android:layout_marginStart="8dp" />
 
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:layout_marginStart="2dp"
-                    android:src="@drawable/ic_clock"
-                    app:tint="@color/text_gray" />
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
 
-                <!-- Button thêm -->
+                <!-- Nút thêm -->
                 <FrameLayout
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:layout_gravity="end"
-                    android:layout_marginStart="10dp"
-                    android:background="@drawable/bg_circle_green">
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/bg_circle_green"
+                    android:layout_marginStart="12dp">
 
                     <ImageView
                         android:layout_width="20dp"

@@ -1,0 +1,31 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="32dp"
+    android:viewportWidth="48"
+    android:viewportHeight="32">
+
+    <!-- Vòng tròn đỏ bên trái -->
+    <path
+        android:fillColor="#EB001B"
+        android:pathData="M16,16a8,8 0 1,1 0,-16a8,8 0 0,1 0,16z" />
+
+    <!-- Vòng tròn cam bên phải -->
+    <path
+        android:fillColor="#F79E1B"
+        android:pathData="M32,16a8,8 0 1,1 0,-16a8,8 0 0,1 0,16z" />
+
+    <!-- Phần giao nhau (màu cam đậm hoặc cam nhạt tùy thiết kế) -->
+    <path
+        android:fillColor="#FF5F00"
+        android:pathData="M24,0a8,8 0 0,1 0,16a8,8 0 0,1 0,-16z" />
+
+    <!-- Text: MasterCard -->
+    <group android:scaleX="0.09" android:scaleY="0.09" android:translateX="5" android:translateY="12">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M110,50h10v10h-10z" /> <!-- Placeholder text box -->
+
+        <!-- Bạn có thể thay bằng chữ bitmap hoặc tách text riêng bên ngoài ImageView -->
+    </group>
+
+</vector>

@@ -12,10 +12,16 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.datn_md02.Model.Product;
 import com.example.datn_md02.Model.Review;
 import com.example.datn_md02.Model.Variant;
 import com.example.datn_md02.R;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.Date;
 import java.util.List;
@@ -49,28 +55,35 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Product product = productList.get(position);
+        if (product == null) return;
 
+        // Tên sản phẩm
         holder.tvName.setText(product.getName());
 
-        // ✅ Giá
+        // Giá
         double price = getFirstVariantPrice(product);
-        holder.tvPrice.setText(price > 0 ? String.format(Locale.getDefault(), "%.0f₫", price) : "N/A");
+        holder.tvPrice.setText(price > 0
+                ? String.format(Locale.getDefault(), "%,.0f₫", price)
+                : "Chưa có");
 
-        // ✅ Đánh giá
-        float avgRating = getAverageRating(product.getReviews());
-        holder.tvRating.setText(avgRating > 0 ? String.format(Locale.getDefault(), "%.1f/5", avgRating) : "Chưa có");
-
-        // ✅ Thời gian
+        // Thời gian
         holder.tvTime.setText(getTimeAgo(product.getCreated()));
 
-        // ✅ Ảnh
+        // Ảnh sản phẩm
         Glide.with(context)
                 .load(product.getImageUrl())
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .placeholder(R.drawable.haha)
+                .error(R.drawable.haha)
                 .into(holder.imageProduct);
 
-        // ✅ Sự kiện click
-        holder.itemView.setOnClickListener(v -> listener.onProductClick(product));
+        // ✅ Đánh giá trung bình từ Firebase
+        loadAverageRatingFromFirebase(holder, product.getProductId());
+
+        // Click
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) listener.onProductClick(product);
+        });
     }
 
     @Override
@@ -95,27 +108,18 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
     private double getFirstVariantPrice(Product product) {
         if (product == null || product.getVariants() == null) return 0.0;
 
-        Map<String, Map<String, Variant>> variantsMap = product.getVariants();
-        for (Map<String, Variant> colorMap : variantsMap.values()) {
+        for (Map<String, Variant> colorMap : product.getVariants().values()) {
             for (Variant variant : colorMap.values()) {
-                if (variant != null) return variant.getPrice();
+                if (variant != null && variant.getPrice() > 0) {
+                    return variant.getPrice();
+                }
             }
         }
         return 0.0;
     }
 
-    private float getAverageRating(List<Review> reviews) {
-        if (reviews == null || reviews.isEmpty()) return 0f;
-
-        float total = 0f;
-        for (Review review : reviews) {
-            total += review.getRating();
-        }
-        return total / reviews.size();
-    }
-
     private String getTimeAgo(Date created) {
-        if (created == null) return "Không rõ";
+        if (created == null) return "";
         long now = System.currentTimeMillis();
         long diff = now - created.getTime();
 
@@ -128,5 +132,39 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
         else if (minutes < 60) return minutes + " phút trước";
         else if (hours < 24) return hours + " giờ trước";
         else return days + " ngày trước";
+    }
+
+    private void loadAverageRatingFromFirebase(ViewHolder holder, String productId) {
+        DatabaseReference reviewRef = FirebaseDatabase.getInstance()
+                .getReference("reviews")
+                .child(productId);
+
+        reviewRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                float total = 0f;
+                int count = 0;
+
+                for (DataSnapshot reviewSnap : snapshot.getChildren()) {
+                    Review review = reviewSnap.getValue(Review.class);
+                    if (review != null && review.getRating() > 0) {
+                        total += review.getRating();
+                        count++;
+                    }
+                }
+
+                if (count > 0) {
+                    float avg = total / count;
+                    holder.tvRating.setText(String.format(Locale.getDefault(), "%.1f★ (%d đánh giá)", avg, count));
+                } else {
+                    holder.tvRating.setText("Chưa có đánh giá");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                holder.tvRating.setText("Lỗi đánh giá");
+            }
+        });
     }
 }

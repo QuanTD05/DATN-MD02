@@ -1,0 +1,98 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:layout_marginBottom="16dp"
+    android:background="@drawable/bg_review_item"
+    android:padding="12dp"
+    android:layout_height="wrap_content">
+
+    <!-- Avatar + tên + rating -->
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:id="@+id/imgAvatar"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/haha"
+            android:scaleType="centerCrop"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/circle_background"/>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/tvReviewerName"
+                android:text="Nguyen Van A"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/tvRating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/star"
+                android:text="★★★★☆"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Nội dung đánh giá -->
+    <TextView
+        android:id="@+id/tvReviewContent"
+        android:text="Nội thất đẹp, đóng gói cẩn thận"
+        android:layout_marginTop="8dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <!-- Ảnh đính kèm -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerImages"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:nestedScrollingEnabled="false" />
+
+    <!-- Tên sản phẩm + ảnh nhỏ -->
+    <LinearLayout
+        android:layout_marginTop="8dp"
+        android:background="#F1F1F1"
+        android:padding="6dp"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/imgProductSmall"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/sample" />
+
+        <TextView
+            android:id="@+id/tvProductName"
+            android:text="BBQ Chicken Delight"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <!-- Ngày giờ đánh giá -->
+    <TextView
+        android:id="@+id/tvReviewTime"
+        android:text="31-11-2024 08:37"
+        android:textSize="12sp"
+        android:textColor="#888"
+        android:layout_marginTop="6dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+</LinearLayout>

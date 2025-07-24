@@ -1,0 +1,151 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FDFDF6">
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tài khoản ngân hàng"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/tvTitle"
+        android:layout_marginTop="12dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Preview thẻ -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="140dp"
+                android:orientation="vertical"
+                android:background="@drawable/black_card_background"
+                android:padding="16dp"
+                android:layout_marginBottom="24dp"
+                android:clipToPadding="false"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="50dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/mastercard_logo"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView
+                    android:id="@+id/tvCardNumberPreview"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="**** **** **** XXXX"
+                    android:textColor="@android:color/white"
+                    android:textSize="18sp"
+                    android:layout_marginBottom="8dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:weightSum="2">
+
+                    <TextView
+                        android:id="@+id/tvCardHolderPreview"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="Card Holder Name\nXXXXXXX"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/tvExpiryPreview"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="Expiry Date\nXX/XX"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp"
+                        android:gravity="end" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Tên ngân hàng -->
+            <EditText
+                android:id="@+id/edtBankName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Tên ngân hàng"
+                android:inputType="textCapWords"
+
+                android:padding="12dp"
+                android:background="@drawable/edit_text_background"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Tên chủ thẻ -->
+            <EditText
+                android:id="@+id/edtCardHolder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Tên chủ thẻ"
+                android:inputType="textPersonName"
+                android:drawableLeft="@drawable/ic_user"
+                android:padding="12dp"
+                android:background="@drawable/edit_text_background"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Số tài khoản -->
+            <EditText
+                android:id="@+id/edtCardNumber"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Số tài khoản"
+                android:inputType="number"
+
+                android:padding="12dp"
+                android:background="@drawable/edit_text_background"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Ngày hết hạn -->
+            <EditText
+                android:id="@+id/edtExpiryDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Ngày hết hạn (MM/YY)"
+                android:inputType="text"
+
+                android:padding="12dp"
+                android:background="@drawable/edit_text_background"
+                android:layout_marginBottom="12dp" />
+
+            <!-- CheckBox mặc định -->
+            <CheckBox
+                android:id="@+id/checkboxDefault"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sử dụng làm phương thức thanh toán mặc định"
+                android:buttonTint="@android:color/holo_red_dark"
+                android:layout_marginTop="12dp" />
+
+            <!-- Nút Lưu -->
+            <Button
+                android:id="@+id/btnSaveBankAccount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Lưu"
+                android:textAllCaps="false"
+                android:background="@drawable/green_rounded_button_bg"
+                android:textColor="@android:color/white"
+                android:layout_marginTop="24dp" />
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>
