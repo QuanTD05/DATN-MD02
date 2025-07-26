@@ -1,0 +1,72 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:background="@color/white"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Header -->
+    <androidx.appcompat.widget.Toolbar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:elevation="4dp"
+        app:title="Voucher"
+        app:navigationIcon="@drawable/ic_back"
+        app:titleTextAppearance="@style/TextAppearance.AppCompat.Medium"/>
+
+    <!-- Tabs -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:tabIndicatorColor="@color/green"
+        app:tabTextColor="@color/black"
+        app:tabSelectedTextColor="@color/green" />
+
+    <!-- RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvVouchers"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="16dp"
+        android:clipToPadding="false" />
+
+    <!-- Footer -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@color/white">
+
+        <TextView
+            android:id="@+id/tvSelectedVoucher"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="1 Phiếu giảm giá đã chọn"
+            android:textColor="@color/black" />
+
+        <TextView
+            android:id="@+id/tvDiscountAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tiết kiệm: $4.19"
+            android:textColor="@color/green"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnConfirm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ĐỒNG Ý"
+        android:textColor="@color/white"
+        android:backgroundTint="@color/green"
+        android:layout_margin="16dp"
+        android:layout_marginBottom="24dp"
+        android:layout_gravity="center"/>
+</LinearLayout>

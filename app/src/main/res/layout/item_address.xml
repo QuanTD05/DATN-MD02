@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_card"
+    android:padding="12dp"
+    android:layout_marginBottom="12dp">
+
+    <!-- Checkbox "đặt làm mặc định" -->
+    <CheckBox
+        android:id="@+id/cbDefault"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Đặt làm địa chỉ mặc định"
+        android:textColor="@color/black" />
+
+    <!-- Hàng chứa tên + icon edit + icon delete -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="8dp">
+
+        <TextView
+            android:id="@+id/tvName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Nguyễn Văn A"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:textSize="16sp" />
+
+        <ImageButton
+            android:id="@+id/btnEdit"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:background="@android:color/transparent"
+            app:srcCompat="@drawable/ic_edit"
+            app:tint="@color/black"
+            android:contentDescription="Sửa" />
+
+        <ImageButton
+            android:id="@+id/btnDelete"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:background="@android:color/transparent"
+            app:srcCompat="@drawable/ic_delete"
+            app:tint="@color/black"
+            android:contentDescription="Xóa" />
+    </LinearLayout>
+
+    <!-- Số điện thoại -->
+    <TextView
+        android:id="@+id/tvPhone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0938472832"
+        android:textColor="@color/black"
+        android:layout_marginTop="4dp" />
+
+    <!-- Địa chỉ -->
+    <TextView
+        android:id="@+id/tvAddress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="FPT Phường Mỹ Đình, Quận Nam Từ Liêm, Hà Nội"
+        android:textColor="@color/black"
+        android:layout_marginTop="2dp" />
+
+</LinearLayout>

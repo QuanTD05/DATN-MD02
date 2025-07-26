@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="8dp"
+    android:layout_marginHorizontal="12dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    android:background="@android:color/transparent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp"
+        android:background="@color/light_bg">
+
+        <!-- Icon voucher -->
+        <ImageView
+            android:id="@+id/ivVoucher"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_voucher_placeholder"
+            android:contentDescription="Voucher Icon" />
+
+        <!-- Thông tin -->
+        <LinearLayout
+            android:id="@+id/layoutText"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/ivVoucher"
+            android:layout_toStartOf="@id/ivCheck"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp">
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Deal Hot!"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tvDiscount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Giảm 10.0%, đơn tối thiểu 10.0$"
+                android:textColor="#00AA55"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/tvCode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mã: DEALHOT123"
+                android:textColor="#444"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="01/11/1024 23:59 - 30/11/2024 23:59"
+                android:textColor="#888"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvCondition"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cho toàn bộ sản phẩm"
+                android:textColor="#888"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Checkbox -->
+        <ImageView
+            android:id="@+id/ivCheck"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_checkbox_unchecked"
+            android:contentDescription="Check" />
+
+    </RelativeLayout>
+
+</androidx.cardview.widget.CardView>

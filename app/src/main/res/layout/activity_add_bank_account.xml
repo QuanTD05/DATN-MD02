@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F7F7F7">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Thêm tài khoản ngân hàng"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Card Preview -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#000000"
+            android:padding="16dp"
+            android:layout_marginBottom="20dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="10dp"
+            android:layout_marginHorizontal="5dp"
+            android:elevation="4dp"
+            android:clipToPadding="false"
+            android:backgroundTint="#000000"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="60dp"
+                android:layout_height="40dp"
+                android:src="@drawable/mastercard_logo"
+                android:contentDescription="MasterCard"
+                android:layout_gravity="start" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="**** **** **** XXXX"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:layout_marginTop="10dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="10dp"
+                android:weightSum="2">
+
+                <TextView
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="Card Holder Name"
+                    android:textColor="#FFFFFF"/>
+
+                <TextView
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="Expiry Date XX/XX"
+                    android:gravity="end"
+                    android:textColor="#FFFFFF"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Input: Họ và Tên -->
+        <EditText
+            android:id="@+id/edtFullName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Họ và Tên"
+            android:padding="12dp"
+            android:background="@android:drawable/edit_text"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- Input: Số tài khoản -->
+        <EditText
+            android:id="@+id/edtAccountNumber"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Số tài khoản"
+            android:padding="12dp"
+            android:inputType="number"
+            android:background="@android:drawable/edit_text"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- Row: CVV & Ngày hết hạn -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2"
+            android:layout_marginBottom="16dp">
+
+            <EditText
+                android:id="@+id/edtCVV"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="CVV"
+                android:padding="12dp"
+                android:inputType="numberPassword"
+                android:background="@android:drawable/edit_text"
+                android:layout_marginEnd="8dp"/>
+
+            <EditText
+                android:id="@+id/edtExpiry"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Ngày hết hạn"
+                android:padding="12dp"
+                android:background="@android:drawable/edit_text"/>
+        </LinearLayout>
+
+        <!-- Button: Hoàn Thành -->
+        <Button
+            android:id="@+id/btnSubmit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="HOÀN THÀNH"
+            android:backgroundTint="#27ae60"
+            android:textColor="#FFFFFF"
+            android:padding="14dp"
+            android:textStyle="bold"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="20dp"/>
+    </LinearLayout>
+</ScrollView>
