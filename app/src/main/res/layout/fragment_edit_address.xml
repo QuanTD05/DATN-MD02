@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FDFDF6"
+    android:padding="16dp">
+
+    <!-- Header -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp">
+
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_alignParentStart="true"
+            android:src="@drawable/ic_logout1" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="Thay đổi địa chỉ giao hàng"
+            android:textStyle="bold"
+            android:textSize="16sp" />
+
+        <ImageView
+            android:id="@+id/btnClose"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_alignParentEnd="true"
+            android:src="@drawable/ic_close"
+            android:background="@drawable/red_border_box_bg"
+            android:padding="4dp"
+            android:scaleType="centerInside" />
+    </RelativeLayout>
+
+    <!-- Form Fields -->
+    <EditText
+        android:id="@+id/edtFullName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Họ và Tên*"
+        android:background="@drawable/edittext_border_bg"
+        android:padding="12dp"
+        android:layout_marginBottom="12dp" />
+
+    <EditText
+        android:id="@+id/edtPhone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Số điện thoại*"
+        android:background="@drawable/edittext_border_bg"
+        android:padding="12dp"
+        android:inputType="phone"
+        android:layout_marginBottom="12dp" />
+
+    <EditText
+        android:id="@+id/edtProvince"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Tỉnh/Thành phố*"
+        android:background="@drawable/edittext_border_bg"
+        android:padding="12dp"
+        android:layout_marginBottom="12dp" />
+
+    <EditText
+        android:id="@+id/edtDistrict"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Quận/Huyện*"
+        android:background="@drawable/edittext_border_bg"
+        android:padding="12dp"
+        android:layout_marginBottom="12dp" />
+
+    <EditText
+        android:id="@+id/edtWard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Phường/Xã*"
+        android:background="@drawable/edittext_border_bg"
+        android:padding="12dp"
+        android:layout_marginBottom="12dp" />
+
+    <EditText
+        android:id="@+id/edtStreet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Tên đường, Tòa nhà, Số nhà*"
+        android:background="@drawable/edittext_border_bg"
+        android:padding="12dp"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Save Button -->
+    <Button
+        android:id="@+id/btnSave"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="LƯU THAY ĐỔI"
+        android:textStyle="bold"
+        android:textAllCaps="true"
+        android:textColor="@android:color/white"
+        android:backgroundTint="#28A745"
+        android:paddingVertical="12dp"
+        android:background="@drawable/green_rounded_button_bg" />
+
+</LinearLayout>

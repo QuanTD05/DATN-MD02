@@ -46,11 +46,17 @@ public class StaffAdapter extends RecyclerView.Adapter<StaffAdapter.StaffViewHol
     public void onBindViewHolder(@NonNull StaffViewHolder holder, int position) {
         User user = filteredList.get(position);
 
-        // Hiển thị tên
         String displayName = user.getFullName() != null ? user.getFullName() : user.getName();
         holder.tvName.setText(displayName);
 
-        // Hiển thị thời gian nếu có
+        if (user.isHasUnread()) {
+            holder.tvName.setTypeface(null, Typeface.BOLD);
+        } else {
+            holder.tvName.setTypeface(null, Typeface.NORMAL);
+        }
+
+        holder.tvEmail.setText(user.getEmail());
+
         long timestamp = user.getTimestamp();
         if (timestamp > 0) {
             holder.tvTimestamp.setText(formatTimestamp(timestamp));
@@ -60,7 +66,15 @@ public class StaffAdapter extends RecyclerView.Adapter<StaffAdapter.StaffViewHol
             holder.tvTimestamp.setTypeface(null, Typeface.ITALIC);
         }
 
-        // Bắt sự kiện click
+        // Hiển thị badge số tin nhắn chưa đọc
+        int unreadCount = user.getUnreadCount();
+        if (unreadCount > 0) {
+            holder.tvUnreadCount.setVisibility(View.VISIBLE);
+            holder.tvUnreadCount.setText(unreadCount > 99 ? "99+" : String.valueOf(unreadCount));
+        } else {
+            holder.tvUnreadCount.setVisibility(View.GONE);
+        }
+
         holder.itemView.setOnClickListener(v -> listener.onStaffClick(user));
     }
 
@@ -95,14 +109,16 @@ public class StaffAdapter extends RecyclerView.Adapter<StaffAdapter.StaffViewHol
     }
 
     static class StaffViewHolder extends RecyclerView.ViewHolder {
-        TextView tvName, tvTimestamp;
+        TextView tvName, tvEmail, tvTimestamp, tvUnreadCount;
         ImageView imgAvatar;
 
         public StaffViewHolder(@NonNull View itemView) {
             super(itemView);
             tvName = itemView.findViewById(R.id.tvStaffName);
+            tvEmail = itemView.findViewById(R.id.tvEmail);
             tvTimestamp = itemView.findViewById(R.id.tvTimestamp);
             imgAvatar = itemView.findViewById(R.id.imgAvatar);
+            tvUnreadCount = itemView.findViewById(R.id.tvUnreadCount);
         }
     }
 

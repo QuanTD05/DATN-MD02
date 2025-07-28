@@ -3,6 +3,7 @@ package com.example.datn_md02.Product;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,12 +17,7 @@ import com.example.datn_md02.Model.Variant;
 import com.example.datn_md02.R;
 import com.google.firebase.database.*;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public class AllProductActivity extends AppCompatActivity {
 
@@ -29,7 +25,12 @@ public class AllProductActivity extends AppCompatActivity {
     private List<Product> productList;
     private ProductAdapter adapter;
     private DatabaseReference productRef;
+
     private String keyword;
+    private String categoryId;
+    private String categoryName;
+
+    private TextView tvTitle;
     private static final String TAG = "AllProductActivity";
 
     @Override
@@ -43,21 +44,29 @@ public class AllProductActivity extends AppCompatActivity {
         ImageView btnBack = findViewById(R.id.btnBackAll);
         btnBack.setOnClickListener(v -> finish());
 
-        productList = new ArrayList<>();
-        adapter = new ProductAdapter(this, productList, product -> {
-            startActivity(ProductDetailActivity.newIntent(this, product));
-        });
-        recyclerView.setAdapter(adapter);
+        tvTitle = findViewById(R.id.tvTitle);
 
+        // Nhận dữ liệu từ Intent
+        keyword = getIntent().getStringExtra("keyword");
+        keyword = keyword != null ? keyword.trim().toLowerCase(Locale.ROOT) : null;
+
+        categoryId = getIntent().getStringExtra("categoryId");
+        categoryId = categoryId != null ? categoryId.trim().toLowerCase(Locale.ROOT) : null;
+
+        categoryName = getIntent().getStringExtra("categoryName");
+
+        // Cập nhật tiêu đề
+        if (categoryName != null && !categoryName.isEmpty()) {
+            tvTitle.setText("Tất cả các loại " + categoryName);
+        } else {
+            tvTitle.setText("Tất cả nội thất");
+        }
+
+        productList = new ArrayList<>();
         productRef = FirebaseDatabase.getInstance().getReference("product");
 
-        // ✅ Nhận keyword từ Intent nếu có
-        keyword = getIntent().getStringExtra("keyword");
-        if (keyword != null) keyword = keyword.toLowerCase(Locale.ROOT);
-
-        loadProducts(); // ✅ chỉ gọi 1 lần load sản phẩm
+        loadProducts();
     }
-
 
     private void loadProducts() {
         productRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -116,15 +125,23 @@ public class AllProductActivity extends AppCompatActivity {
                         }
                         product.setReviews(reviewList);
 
-                        // 👉 Lọc theo từ khóa nếu có
-                        if (keyword == null || keyword.isEmpty()) {
-                            productList.add(product);
+                        // Lọc sản phẩm
+                        boolean isMatch;
+                        if ((categoryId == null || categoryId.isEmpty()) && (keyword == null || keyword.isEmpty())) {
+                            isMatch = true; // Hiển thị tất cả sản phẩm
+                        } else if (categoryId != null && !categoryId.isEmpty()) {
+                            String productCategory = product.getCategoryId() != null
+                                    ? product.getCategoryId().trim().toLowerCase(Locale.ROOT)
+                                    : "";
+                            isMatch = productCategory.equalsIgnoreCase(categoryId);
                         } else {
                             String name = product.getName() != null ? product.getName().toLowerCase(Locale.ROOT) : "";
                             String category = product.getCategoryId() != null ? product.getCategoryId().toLowerCase(Locale.ROOT) : "";
-                            if (name.contains(keyword) || category.contains(keyword)) {
-                                productList.add(product);
-                            }
+                            isMatch = name.contains(keyword) || category.contains(keyword);
+                        }
+
+                        if (isMatch) {
+                            productList.add(product);
                         }
 
                     } catch (Exception e) {
@@ -132,8 +149,12 @@ public class AllProductActivity extends AppCompatActivity {
                     }
                 }
 
-                adapter.notifyDataSetChanged();
-                Log.d(TAG, "✅ Đã tải " + productList.size() + " sản phẩm");
+                adapter = new ProductAdapter(AllProductActivity.this, productList, product -> {
+                    startActivity(ProductDetailActivity.newIntent(AllProductActivity.this, product));
+                });
+                recyclerView.setAdapter(adapter);
+
+                Log.d(TAG, "✅ Tổng số sản phẩm hiển thị: " + productList.size());
             }
 
             @Override

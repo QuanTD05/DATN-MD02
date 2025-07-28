@@ -49,7 +49,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="4dp"
-                        android:text="Hồ Chí Minh"
+                        android:text="Quảng Trị"
                         android:textStyle="bold"
                         android:textSize="16sp"
                         android:textColor="@color/black" />
@@ -114,14 +114,37 @@
             android:src="@drawable/hehe" />
 
         <!-- Danh mục -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <!-- Đồ Nội Thất + Tất cả -->
+        <LinearLayout
             android:layout_marginTop="16dp"
-            android:text="Đồ Nội Thất"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="@color/black" />
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Đồ Nội Thất"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/black" />
+
+            <TextView
+                android:id="@+id/tvAll"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tất cả"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:textColor="@color/highlight"
+                android:padding="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+
 
         <HorizontalScrollView
             android:layout_width="match_parent"
@@ -288,24 +311,16 @@
                 android:textSize="16sp"
                 android:textColor="@color/black" />
 
-            <TextView
-                android:id="@+id/tvAll"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tất cả"
-                android:textStyle="bold"
-                android:textColor="@color/highlight"
-                android:clickable="true"
-                android:focusable="true" />
+
         </LinearLayout>
 
-        <!-- Danh sách sản phẩm phổ biến -->
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerPopular"
+            android:id="@+id/recyclerAllProduct"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:nestedScrollingEnabled="false" />
+
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

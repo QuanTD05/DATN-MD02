@@ -113,18 +113,16 @@
         <!-- Nút đăng ký -->
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnRegister"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-        android:text="Đăng ký"
-        android:textAllCaps="false"
-        android:textColor="@android:color/white"
-        android:background="@drawable/button_rounded"
-        android:paddingStart="32dp"
-        android:paddingEnd="32dp"
-        android:paddingTop="12dp"
-        android:paddingBottom="12dp"
-        android:layout_marginTop="16dp" />
+            android:text="Đăng ký"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:background="@drawable/button_rounded"
+            android:paddingVertical="14dp"
+            android:layout_marginTop="12dp"
+            android:gravity="center" />
 
 
     </LinearLayout>

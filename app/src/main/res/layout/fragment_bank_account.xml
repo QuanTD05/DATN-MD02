@@ -1,0 +1,40 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FDFDF6">
+
+    <!-- Tiêu đề -->
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Danh sách tài khoản ngân hàng"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp" />
+
+    <!-- Danh sách thẻ ngân hàng -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerBankAccounts"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/tvTitle"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="72dp"
+        android:padding="16dp"
+        android:clipToPadding="false" />
+
+    <!-- Nút thêm thẻ ngân hàng -->
+    <ImageView
+        android:id="@+id/btnAddBank"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="16dp"
+        android:background="@drawable/green_rounded_button_bg"
+        android:padding="12dp"
+        android:src="@android:drawable/ic_input_add"
+        android:contentDescription="Thêm tài khoản" />
+</RelativeLayout>

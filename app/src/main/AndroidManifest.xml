@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
     <!-- Quyền truy cập mạng -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <!-- Nếu Android 13+ -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- Nếu Android 13+ -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
     <application
@@ -20,29 +18,64 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DATN_MD02"
         tools:targetApi="31">
-
-        <!-- 🧩 Danh sách activity -->
-        <activity android:name=".ChatActivity" android:exported="false" />
-        <activity android:name=".UserActivity" android:exported="false" />
-        <activity android:name=".RegisterActivity" android:exported="false" />
-        <activity android:name=".LoginActivity" android:exported="false" />
-        <activity android:name=".StartActivity" android:exported="false" />
-        <activity android:name=".MainActivity" android:exported="false" />
-        <!-- ✅ BỔ SUNG: Các activity sản phẩm -->
-        <activity android:name=".Product.AllProductActivity" android:exported="false" />
-        <activity android:name=".Product.ProductDetailActivity" android:exported="false" />
-        <activity android:name=".Product.FullscreenImageActivity" android:exported="false" /> <!-- ⭐️ THÊM DÒNG NÀY -->
-
+        <activity
+            android:name=".ResetPasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Cart.CartActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Fragment.CartFragment"
+            android:exported="false" />
+        <activity
+            android:name=".Adapter.CartAdapter"
+            android:exported="false" />
+        <activity
+            android:name=".Adapter.ReviewImageAdapter"
+            android:exported="false" />
+        <activity
+            android:name=".Product.ReviewListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Product.AllReviewActivity"
+            android:exported="false" /> <!-- 🧩 Danh sách activity -->
+        <activity
+            android:name=".ChatActivity"
+            android:exported="false" />
+        <activity
+            android:name=".UserActivity"
+            android:exported="false" />
+        <activity
+            android:name=".RegisterActivity"
+            android:exported="false" />
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false" />
+        <activity
+            android:name=".StartActivity"
+            android:exported="false" />
+        <activity
+            android:name=".MainActivity"
+            android:exported="false" /> <!-- ✅ BỔ SUNG: Các activity sản phẩm -->
+        <activity
+            android:name=".Product.AllProductActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Product.ProductDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Product.FullscreenImageActivity"
+            android:exported="false" /> <!-- ⭐️ THÊM DÒNG NÀY -->
         <!-- Launcher -->
         <activity
             android:name=".SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
     </application>
 
 </manifest>

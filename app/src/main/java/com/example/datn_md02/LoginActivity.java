@@ -29,10 +29,8 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         mAuth = FirebaseAuth.getInstance();
 
-        // ✅ Kiểm tra nếu đã đăng nhập thì chuyển luôn
         if (mAuth.getCurrentUser() != null) {
             checkUserRoleAndNavigate(mAuth.getCurrentUser());
             return;
@@ -42,24 +40,22 @@ public class LoginActivity extends AppCompatActivity {
 
         usersRef = FirebaseDatabase.getInstance().getReference("users");
 
-        // Gắn UI
         emailEditText = findViewById(R.id.email);
         passwordEditText = findViewById(R.id.password);
         loginButton = findViewById(R.id.login);
         txtSignup = findViewById(R.id.txt_signup);
         txtForgot = findViewById(R.id.txtForgot);
 
-        // Nút đăng nhập
         loginButton.setOnClickListener(v -> loginUser());
 
-        // Quên mật khẩu (hiện tại chưa có chức năng)
-        txtForgot.setOnClickListener(v ->
-                Toast.makeText(this, "Chức năng đang phát triển", Toast.LENGTH_SHORT).show()
-        );
+        // ✅ Mở màn hình quên mật khẩu mới
+        txtForgot.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, ResetPasswordActivity.class);
+            startActivity(intent);
+        });
 
-        // Xử lý "Đăng ký"
+        // Đăng ký (spannable link)
         SpannableString span = new SpannableString("Bạn chưa có tài khoản? Đăng ký");
-
         ClickableSpan clickableSpan = new ClickableSpan() {
             @Override
             public void onClick(@NonNull View widget) {
@@ -101,8 +97,6 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void checkUserRoleAndNavigate(FirebaseUser user) {
-        usersRef = FirebaseDatabase.getInstance().getReference("users");
-
         usersRef.child(user.getUid()).child("role")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -110,7 +104,7 @@ public class LoginActivity extends AppCompatActivity {
                         if (snapshot.exists()) {
                             String role = snapshot.getValue(String.class);
                             if ("user".equalsIgnoreCase(role)) {
-                                navigateToUserScreen(role);
+                                navigateToUserScreen();
                             } else {
                                 mAuth.signOut();
                                 Toast.makeText(LoginActivity.this, "Không có quyền truy cập", Toast.LENGTH_SHORT).show();
@@ -128,10 +122,8 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
 
-    private void navigateToUserScreen(String role) {
-        Intent intent = new Intent(this, UserActivity.class);
-
-        startActivity(intent);
+    private void navigateToUserScreen() {
+        startActivity(new Intent(this, UserActivity.class));
         finish();
     }
 }

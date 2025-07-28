@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="horizontal"
     android:padding="12dp"
     android:layout_width="match_parent"
@@ -10,24 +9,45 @@
     android:layout_marginVertical="6dp"
     android:elevation="2dp">
 
-    <!-- Avatar -->
-    <ImageView
-        android:id="@+id/imgAvatar"
+    <!-- Avatar + badge container -->
+    <FrameLayout
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:layout_marginEnd="12dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/ic_avatar_placeholder"
-        android:background="@drawable/bg_received" />
+        android:layout_marginEnd="12dp">
 
-    <!-- Tên và thời gian -->
+        <ImageView
+            android:id="@+id/imgAvatar"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_avatar_placeholder"
+            android:background="@drawable/bg_received" />
+
+        <!-- Badge số tin nhắn chưa đọc -->
+        <TextView
+            android:id="@+id/tvUnreadCount"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_gravity="top|end"
+            android:background="@drawable/bg_circle_red"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:visibility="gone"
+            android:minWidth="18dp"
+            android:minHeight="18dp"
+            android:padding="2dp" />
+    </FrameLayout>
+
+    <!-- Tên, email và thời gian -->
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="wrap_content">
 
-        <!-- Hàng ngang: tên bên trái, thời gian bên phải -->
+        <!-- Tên + Thời gian -->
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
@@ -52,5 +72,14 @@
                 android:textSize="12sp"
                 android:textColor="#D0C7C7" />
         </LinearLayout>
+
+        <!-- Email -->
+        <TextView
+            android:id="@+id/tvEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="staff@gmail.com"
+            android:textSize="14sp"
+            android:textColor="#666666" />
     </LinearLayout>
 </LinearLayout>

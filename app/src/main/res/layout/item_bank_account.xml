@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_edittext"
+    android:padding="16dp"
+    android:layout_margin="12dp"
+    android:elevation="4dp">
+
+    <!-- Tên ngân hàng -->
+    <TextView
+        android:id="@+id/txtBankName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="VietComBank"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:textColor="#000000" />
+
+    <!-- Chủ thẻ -->
+    <TextView
+        android:id="@+id/txtCardHolder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Chủ thẻ: Nguyễn Văn A"
+        android:textSize="14sp"
+        android:layout_marginTop="4dp"
+        android:textColor="#444444" />
+
+    <!-- Số tài khoản -->
+    <TextView
+        android:id="@+id/txtCardNumber"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Số tài khoản: 123456789"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:layout_marginTop="2dp"
+        android:textColor="#000000" />
+
+    <!-- Ngày hết hạn -->
+    <TextView
+        android:id="@+id/txtExpiry"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hết hạn: 12/12/2030"
+        android:textSize="14sp"
+        android:layout_marginTop="2dp"
+        android:textColor="#444444" />
+
+    <!-- Hành động: Thẻ mặc định + sửa + xóa -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="10dp"
+        android:gravity="center_vertical">
+
+        <RadioButton
+            android:id="@+id/radioDefault"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Thẻ mặc định"
+            android:buttonTint="@color/black"
+            android:textColor="#000000" />
+
+        <ImageView
+            android:id="@+id/btnEdit"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="16dp"
+            android:src="@drawable/ic_edit"
+            android:contentDescription="Sửa" />
+
+        <ImageView
+            android:id="@+id/btnDelete"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_delete"
+            android:contentDescription="Xóa" />
+    </LinearLayout>
+</LinearLayout>

@@ -37,47 +37,6 @@
             android:textColor="@color/black" />
     </LinearLayout>
 
-    <!-- Thanh tìm kiếm (nếu muốn thêm filter sau này) -->
-    <!--
-    <LinearLayout
-        android:id="@+id/searchBar"
-        android:layout_below="@id/header"
-        android:layout_marginTop="12dp"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:orientation="horizontal"
-        android:background="@drawable/bg_search"
-        android:paddingHorizontal="12dp"
-        android:gravity="center_vertical">
-
-        <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:src="@drawable/ic_search"
-            app:tint="@color/text_gray" />
-
-        <EditText
-            android:id="@+id/edtSearchAll"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="match_parent"
-            android:hint="Tìm kiếm"
-            android:background="@null"
-            android:textColorHint="@color/text_gray"
-            android:textColor="@color/black"
-            android:padding="8dp" />
-
-        <ImageButton
-            android:id="@+id/btnFilterAll"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="@drawable/bg_circle"
-            android:src="@drawable/ic_filter"
-            app:tint="@color/white" />
-    </LinearLayout>
-    -->
-
-    <!-- Danh sách sản phẩm -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewAll"
         android:layout_width="match_parent"

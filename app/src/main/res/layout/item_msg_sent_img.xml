@@ -1,0 +1,39 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:gravity="end">
+
+    <!-- Tin nhắn văn bản -->
+    <TextView
+        android:id="@+id/tvMsgSent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_message_sender"
+        android:textColor="#000000"
+        android:textSize="16sp"
+        android:padding="10dp"
+        android:maxWidth="280dp"
+        android:layout_marginBottom="4dp"
+        android:visibility="gone" />
+
+    <!-- Ảnh -->
+    <ImageView
+        android:id="@+id/imgMsgSent"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:scaleType="centerCrop"
+        android:layout_marginBottom="4dp"
+        android:visibility="gone"
+        android:contentDescription="Ảnh tin nhắn" />
+
+    <!-- Thời gian -->
+    <TextView
+        android:id="@+id/tvTimeSent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="10:30 10/07/2025"
+        android:textSize="12sp"
+        android:textColor="#888888" />
+</LinearLayout>
