@@ -170,6 +170,27 @@
                         android:padding="6dp" />
                 </LinearLayout>
 
+
+
+                <!-- Biến thể -->
+                <TextView
+                    android:id="@+id/tvVariantTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:text="Các biến thể"
+                    android:textColor="@color/black"
+                    android:textStyle="bold" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerVariants"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:nestedScrollingEnabled="false" />
+
+
+
                 <!-- Đánh giá -->
                 <TextView
                     android:layout_width="match_parent"
@@ -202,24 +223,16 @@
                         android:textColor="@color/highlight"
                         android:textSize="14sp" />
                 </LinearLayout>
-
-                <!-- Biến thể -->
-                <TextView
-                    android:id="@+id/tvVariantTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:text="Các biến thể"
-                    android:textColor="@color/black"
-                    android:textStyle="bold" />
-
                 <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recyclerVariants"
+                    android:id="@+id/recyclerReviews"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:nestedScrollingEnabled="false" />
+                    android:nestedScrollingEnabled="false"
+                    android:overScrollMode="never" />
+
             </LinearLayout>
+
         </LinearLayout>
     </ScrollView>
 

@@ -23,13 +23,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp">
 
-                <ImageView
-                    android:id="@+id/btnBack"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_logout1"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true" />
+
 
                 <TextView
                     android:id="@+id/tvTitle"
@@ -100,6 +94,7 @@
                 android:id="@+id/layoutReview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@android:color/white"
                 android:orientation="vertical"
                 android:padding="16dp"
                 android:clickable="true"
@@ -145,6 +140,7 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/Oderhistory"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@android:color/white"

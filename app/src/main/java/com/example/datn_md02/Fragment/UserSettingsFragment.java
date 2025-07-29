@@ -33,7 +33,7 @@ import com.google.firebase.storage.StorageReference;
 public class UserSettingsFragment extends Fragment {
 
     private TextView tvName, tvEmail, tvPhone;
-    private ImageView avatar;
+    private ImageView avatar, btnBack;
     private LinearLayout rowName, rowPhone;
 
     private FirebaseAuth auth;
@@ -52,7 +52,10 @@ public class UserSettingsFragment extends Fragment {
         auth = FirebaseAuth.getInstance();
         firebaseUser = auth.getCurrentUser();
         storageRef = FirebaseStorage.getInstance().getReference();
-
+         btnBack = view.findViewById(R.id.btnBack);
+        btnBack.setOnClickListener(v -> {
+            requireActivity().onBackPressed(); // quay lại màn hình trước
+        });
         // Bind views
         tvName = view.findViewById(R.id.tvName);
         tvEmail = view.findViewById(R.id.tvEmail);

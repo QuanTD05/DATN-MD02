@@ -13,14 +13,32 @@ public class Review implements Serializable {
     private double rating;
     private long timestamp;
 
-    private String productName;     // 👉 Tên sản phẩm được đánh giá
-    private String productImage;    // 👉 Ảnh sản phẩm nhỏ
+    private String productName;
+    private String productImage;
+    private List<String> imageUrls;
 
-    private List<String> imageUrls; // 👉 Danh sách ảnh đính kèm
+    private String variantColor; // ✅ Thêm
+    private String variantSize;  // ✅ Thêm
 
-    // Constructors
     public Review() {
     }
+    public Review(String userId, String userName, String userAvatar,
+                  String comment, double rating, long timestamp,
+                  String productName, String productImage,
+                  List<String> imageUrls, String reviewId) {
+        this.userId = userId;
+        this.userName = userName;
+        this.userAvatar = userAvatar;
+        this.comment = comment;
+        this.rating = rating;
+        this.timestamp = timestamp;
+        this.productName = productName;
+        this.productImage = productImage;
+        this.imageUrls = imageUrls;
+        // Optional: dùng nếu bạn lưu reviewId riêng
+        // this.reviewId = reviewId; // nếu bạn có biến này
+    }
+
 
     public Review(String userId, String userName, String userAvatar, String comment, double rating, long timestamp) {
         this.userId = userId;
@@ -105,13 +123,27 @@ public class Review implements Serializable {
         this.imageUrls = imageUrls;
     }
 
-    // Trả về Date từ timestamp
     public Date getCreatedAt() {
         return new Date(timestamp);
     }
 
-    // Tuỳ chọn: đặt timestamp = thời gian hiện tại
     public void setTimestampToNow() {
         this.timestamp = System.currentTimeMillis();
+    }
+
+    public String getVariantColor() {
+        return variantColor;
+    }
+
+    public void setVariantColor(String variantColor) {
+        this.variantColor = variantColor;
+    }
+
+    public String getVariantSize() {
+        return variantSize;
+    }
+
+    public void setVariantSize(String variantSize) {
+        this.variantSize = variantSize;
     }
 }

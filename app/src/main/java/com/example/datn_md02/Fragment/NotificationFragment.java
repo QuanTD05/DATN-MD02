@@ -1,44 +1,45 @@
 package com.example.datn_md02.Fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.view.*;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.viewpager2.widget.ViewPager2;
 
+import com.example.datn_md02.Adapter.NotificationPagerAdapter;
+import com.example.datn_md02.Cart.CartActivity;
+import com.example.datn_md02.Product.ProductDetailActivity;
 import com.example.datn_md02.R;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 
 public class NotificationFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_notification, container, false);
-        LinearLayout notificationContainer = view.findViewById(R.id.container_notification);
 
-        // Tạo 10 thông báo fix cứng
-        for (int i = 1; i <= 10; i++) {
-            View itemView = inflater.inflate(R.layout.item_notification, notificationContainer, false);
+        TabLayout tabLayout = view.findViewById(R.id.tabLayoutNoti);
+        ViewPager2 viewPager = view.findViewById(R.id.viewPagerNoti);
 
-            TextView tvTitle = itemView.findViewById(R.id.tv_title);
-            TextView tvDescription = itemView.findViewById(R.id.tv_description);
-            TextView tvTime = itemView.findViewById(R.id.tv_time);
+        NotificationPagerAdapter adapter = new NotificationPagerAdapter(requireActivity());
+        viewPager.setAdapter(adapter);
+        ImageView ivCart = view.findViewById(R.id.ivCartIcon);
+        ivCart.setOnClickListener(v -> {
+            Intent intent = new Intent(getContext(), CartActivity.class);
+            startActivity(intent);
+        });
 
-            // Gán nội dung tùy ý
-            tvTitle.setText("Thông báo #" + i);
-            tvDescription.setText("Đây là nội dung thông báo số " + i);
-            tvTime.setText(i + " phút trước");
-
-            notificationContainer.addView(itemView);
-        }
+        new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
+            if (position == 0) tab.setText("Khuyến mãi");
+            else tab.setText("Đơn hàng");
+        }).attach();
 
         return view;
     }

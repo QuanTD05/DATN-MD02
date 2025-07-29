@@ -1,6 +1,8 @@
 package com.example.datn_md02.Model;
 
-public class Cart {
+import java.io.Serializable;
+
+public class Cart implements Serializable {
     private String cartId;
     private String productId;
     private String productName;

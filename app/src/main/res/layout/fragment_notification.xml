@@ -1,24 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F2F0EA"> <!-- nền be siêu nhạt -->
+    android:orientation="vertical"
+    android:background="#F8F8F8">
 
     <LinearLayout
-        android:id="@+id/container_notification"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="16dp"
+        android:background="#F8F8F8">
 
+        <!-- Tiêu đề -->
         <TextView
-            android:layout_width="match_parent"
+            android:id="@+id/tvHeader"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Thông báo"
-            android:textSize="18sp"
+            android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="#000000"
-            android:gravity="center"
-            android:layout_marginBottom="16dp" />
+            android:textColor="#000" />
+
+        <!-- View chiếm khoảng trống ở giữa -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <!-- Icon giỏ hàng bên phải -->
+        <ImageView
+            android:id="@+id/ivCartIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_cart"
+            android:contentDescription="Giỏ hàng" />
     </LinearLayout>
-</ScrollView>
+
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayoutNoti"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar" />
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPagerNoti"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+</LinearLayout>
