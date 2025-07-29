@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.datn_md02.Adapter.ReviewAdapter;
 import com.example.datn_md02.Adapter.VariantAdapter;
 import com.example.datn_md02.Cart.CartActivity;
 import com.example.datn_md02.Model.Cart;
@@ -30,12 +31,12 @@ import java.util.*;
 public class ProductDetailActivity extends AppCompatActivity {
 
     private Product product;
-    private ImageView imgProduct, btnBack, btnCart;
+    private ImageView imgProduct, btnBack, btnCart, btnIncrease,btnDecrease;
     private Button btnAddToCart;
     private TextView tvName, tvPrice, tvQuantity, tvTotal, tvDescription, tvCreated, tvRating;
-    private RecyclerView recyclerViewVariant;
-    private ImageView btnIncrease, btnDecrease;
+    private RecyclerView recyclerViewVariant, recyclerReviews;
     private VariantAdapter variantAdapter;
+    private ReviewAdapter reviewAdapter;
     private List<VariantDisplay> variantDisplayList = new ArrayList<>();
 
     private double unitPrice = 0.0;
@@ -57,6 +58,7 @@ public class ProductDetailActivity extends AppCompatActivity {
         }
 
         setEventHandlers();
+
         btnCart = findViewById(R.id.btnCart);
         btnCart.setOnClickListener(view -> {
             Intent intent = new Intent(ProductDetailActivity.this, CartActivity.class);
@@ -82,6 +84,11 @@ public class ProductDetailActivity extends AppCompatActivity {
         recyclerViewVariant.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         variantAdapter = new VariantAdapter(variantDisplayList, this::onVariantSelected);
         recyclerViewVariant.setAdapter(variantAdapter);
+
+        recyclerReviews = findViewById(R.id.recyclerReviews);
+        reviewAdapter = new ReviewAdapter(this, new ArrayList<>());
+        recyclerReviews.setLayoutManager(new LinearLayoutManager(this));
+        recyclerReviews.setAdapter(reviewAdapter);
     }
 
     private void showProductDetails() {
@@ -116,17 +123,9 @@ public class ProductDetailActivity extends AppCompatActivity {
                 for (Map.Entry<String, Variant> colorEntry : sizeEntry.getValue().entrySet()) {
                     String color = colorEntry.getKey();
                     Variant variant = colorEntry.getValue();
-
                     variant.setSize(size);
                     variant.setColor(color);
-
-                    variantDisplayList.add(new VariantDisplay(
-                            size,
-                            color,
-                            variant.getPrice(),
-                            variant.getQuantity(),
-                            variant.getImageUrl()
-                    ));
+                    variantDisplayList.add(new VariantDisplay(size, color, variant.getPrice(), variant.getQuantity(), variant.getImageUrl()));
                 }
             }
         }
@@ -185,16 +184,18 @@ public class ProductDetailActivity extends AppCompatActivity {
     private void loadReviewsFromFirebase(String productId) {
         DatabaseReference reviewRef = FirebaseDatabase.getInstance().getReference("reviews").child(productId);
 
-        reviewRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        reviewRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 double total = 0;
                 int count = 0;
+                List<Review> reviewList = new ArrayList<>();
                 for (DataSnapshot reviewSnap : snapshot.getChildren()) {
                     Review review = reviewSnap.getValue(Review.class);
                     if (review != null && review.getRating() > 0) {
                         total += review.getRating();
                         count++;
+                        reviewList.add(review);
                     }
                 }
 
@@ -204,6 +205,8 @@ public class ProductDetailActivity extends AppCompatActivity {
                 } else {
                     tvRating.setText("⭐ Chưa có đánh giá");
                 }
+
+                reviewAdapter.setData(reviewList);
             }
 
             @Override
@@ -232,25 +235,11 @@ public class ProductDetailActivity extends AppCompatActivity {
         String variantSize = selectedVariant != null ? selectedVariant.size : null;
         String variantColor = selectedVariant != null ? selectedVariant.color : null;
 
-        Cart cartItem = new Cart(
-                cartId,
-                product.getProductId(),
-                product.getName(),
-                currentImageUrl,
-                quantity,
-                unitPrice,
-                true,
-                variantSize,
-                variantColor
-        );
+        Cart cartItem = new Cart(cartId, product.getProductId(), product.getName(), currentImageUrl, quantity, unitPrice, true, variantSize, variantColor);
 
         cartRef.child(cartId).setValue(cartItem)
-                .addOnSuccessListener(unused -> {
-                    Toast.makeText(this, "Đã thêm vào giỏ hàng", Toast.LENGTH_SHORT).show();
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Lỗi khi thêm vào giỏ hàng", Toast.LENGTH_SHORT).show();
-                });
+                .addOnSuccessListener(unused -> Toast.makeText(this, "Đã thêm vào giỏ hàng", Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e -> Toast.makeText(this, "Lỗi khi thêm vào giỏ hàng", Toast.LENGTH_SHORT).show());
     }
 
     public static Intent newIntent(Context context, Product product) {

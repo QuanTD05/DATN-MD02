@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/tvDashboardTitle"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="#5C774E"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:text="Lịch sử  đơn hàng"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+    <!-- Tab bar -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:tabIndicatorColor="#67AE70"
+        app:tabTextColor="@color/black"
+        app:tabSelectedTextColor="#67AE70"
+        app:tabIndicatorFullWidth="false"
+        app:tabMode="fixed"
+        app:tabGravity="fill" />
+
+    <!-- ViewPager2 để hiển thị nội dung từng tab -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager2"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+</LinearLayout>

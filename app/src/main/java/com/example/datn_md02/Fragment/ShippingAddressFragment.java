@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -31,6 +32,7 @@ public class ShippingAddressFragment extends Fragment {
     private LinearLayout addressListLayout;
     private List<ShippingAddress> addressList;
     private DatabaseReference dbRef;
+    private ImageView btnBack;
     private String uid;
 
     @Nullable
@@ -41,7 +43,10 @@ public class ShippingAddressFragment extends Fragment {
 
         View view = inflater.inflate(com.example.datn_md02.R.layout.fragment_shipping_address, container, false);
         addressListLayout = view.findViewById(com.example.datn_md02.R.id.addressListLayout);
-
+         btnBack = view.findViewById(R.id.btnBack);
+        btnBack.setOnClickListener(v -> {
+            requireActivity().onBackPressed(); // quay lại màn hình trước
+        });
         // Nút thêm địa chỉ
         FloatingActionButton btnAdd = view.findViewById(com.example.datn_md02.R.id.btnAdd);
         btnAdd.setOnClickListener(v -> {

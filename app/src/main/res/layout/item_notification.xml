@@ -1,50 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="12dp"
-    android:gravity="center_vertical"
-    android:background="@drawable/bg_notification_item"
-    android:layout_marginBottom="12dp">
-
-    <ImageView
-        android:id="@+id/img_icon"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:src="@drawable/ic_notification"
-        android:contentDescription="Notification Icon"
-        android:layout_marginEnd="12dp" />
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_margin="5dp"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="6dp"
+    app:cardUseCompatPadding="true"
+    >
 
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:orientation="horizontal"
+        android:padding="5dp"
+        android:gravity="center_vertical">
+
+        <!-- Hình tròn bo góc -->
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/imgTypeIcon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_promo"
+            android:contentDescription="icon"
+            app:shapeAppearanceOverlay="@style/CircleImage" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="12dp">
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Khuyến mãi mới!"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:textColor="#212121" />
+
+            <TextView
+                android:id="@+id/tvMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mã giảm ABC123 - Giảm 50%"
+                android:textSize="14sp"
+                android:textColor="#666666"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
 
         <TextView
-            android:id="@+id/tv_title"
+            android:id="@+id/tvTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Đơn hàng đã được xác nhận"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:textColor="#000000" />
-
-        <TextView
-            android:id="@+id/tv_description"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Đơn hàng của bạn đã được xác nhận thành công"
-            android:textColor="#555555"
-            android:textSize="14sp" />
+            android:text="14:30"
+            android:textSize="12sp"
+            android:textColor="#999999" />
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/tv_time"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="2 phút trước"
-        android:textColor="#888888"
-        android:textSize="12sp" />
-</LinearLayout>
+</androidx.cardview.widget.CardView>

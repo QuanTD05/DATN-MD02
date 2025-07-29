@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">DATN_MD02</string>
     <string name="product_image">Ảnh sản phẩm</string>
+
     <style name="SettingsRowStyle">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
@@ -10,5 +11,18 @@
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
     </style>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <style name="RatingBar" parent="Theme.AppCompat.Light">
+        <item name="colorControlActivated">#FFD700</item> <!-- Vàng kim -->
+        <item name="colorControlNormal">#CCCCCC</item>
+    </style>
+    <style name="CircleImage" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+
 
 </resources>

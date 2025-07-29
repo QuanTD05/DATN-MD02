@@ -59,6 +59,8 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'com.google.firebase:firebase-database:20.3.0'
     implementation 'com.google.firebase:firebase-storage:20.3.0' // hoặc version mới nhất
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+
 
 
 

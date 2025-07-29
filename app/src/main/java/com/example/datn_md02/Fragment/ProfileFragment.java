@@ -24,7 +24,7 @@ import com.google.firebase.database.*;
 public class ProfileFragment extends Fragment {
 
     private TextView tvName, tvEmail;
-    private ImageView btnLogout, imgAvatar;
+    private ImageView btnLogout, imgAvatar, btnBack;
     private FirebaseAuth auth;
     private FirebaseUser firebaseUser;
     private DatabaseReference userRef;
@@ -42,6 +42,7 @@ public class ProfileFragment extends Fragment {
         tvEmail = view.findViewById(R.id.tvEmail);
         btnLogout = view.findViewById(R.id.btnLogout);
         imgAvatar = view.findViewById(R.id.imgAvatar); // Thêm avatar
+
 
         auth = FirebaseAuth.getInstance();
         firebaseUser = auth.getCurrentUser();
@@ -116,6 +117,16 @@ public class ProfileFragment extends Fragment {
                     .getSupportFragmentManager()
                     .beginTransaction();
             transaction.replace(R.id.main_content, new BankAccountFragment());
+            transaction.addToBackStack(null);
+            transaction.commit();
+        });
+        // Chuyển đến BankAccountFragment
+        LinearLayout Oderhistoryt = view.findViewById(R.id.Oderhistory);
+        Oderhistoryt.setOnClickListener(v -> {
+            FragmentTransaction transaction = requireActivity()
+                    .getSupportFragmentManager()
+                    .beginTransaction();
+            transaction.replace(R.id.main_content, new OrderHistoryFragment());
             transaction.addToBackStack(null);
             transaction.commit();
         });

@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -16,6 +17,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.datn_md02.Adapter.ProductAdapter;
+import com.example.datn_md02.Cart.CartActivity;
 import com.example.datn_md02.Model.Product;
 import com.example.datn_md02.Model.Review;
 import com.example.datn_md02.Model.Variant;
@@ -59,7 +61,11 @@ public class HomeFragment extends Fragment {
             startActivity(intent);
         });
         recyclerAllProduct.setAdapter(allProductAdapter);
-
+        ImageView ivCart = view.findViewById(R.id.ic_cart);
+        ivCart.setOnClickListener(v -> {
+            Intent intent = new Intent(getContext(), CartActivity.class);
+            startActivity(intent);
+        });
         // Nút "Tất cả"
         tvAll = view.findViewById(R.id.tvAll);
         tvAll.setOnClickListener(v -> {

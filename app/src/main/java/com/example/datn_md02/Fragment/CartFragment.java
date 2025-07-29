@@ -1,13 +1,11 @@
 package com.example.datn_md02.Fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.*;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,10 +15,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.datn_md02.Adapter.CartAdapter;
 import com.example.datn_md02.Model.Cart;
+import com.example.datn_md02.PayActivity;
 import com.example.datn_md02.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.*;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -34,6 +34,7 @@ public class CartFragment extends Fragment {
 
     private final List<Cart> cartList = new ArrayList<>();
     private CartAdapter cartAdapter;
+    private ImageView btnBack;
     private DatabaseReference cartRef;
     private String currentUserId;
 
@@ -49,6 +50,10 @@ public class CartFragment extends Fragment {
         tvTotalPrice = view.findViewById(R.id.tvTotalPrice);
         checkboxSelectAll = view.findViewById(R.id.checkboxSelectAll);
         btnCheckout = view.findViewById(R.id.btnCheckout);
+        btnBack = view.findViewById(R.id.btnBack);
+        btnBack.setOnClickListener(v -> {
+            requireActivity().onBackPressed(); // quay lại màn hình trước
+        });
 
         currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         cartRef = FirebaseDatabase.getInstance().getReference("Cart").child(currentUserId);
@@ -119,8 +124,10 @@ public class CartFragment extends Fragment {
             if (selectedItems.isEmpty()) {
                 Toast.makeText(requireContext(), "Vui lòng chọn sản phẩm!", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(requireContext(), "Đã chọn " + selectedItems.size() + " sản phẩm", Toast.LENGTH_SHORT).show();
-                // TODO: Chuyển sang màn hình thanh toán
+                // Chuyển sang PayActivity và truyền danh sách
+                Intent intent = new Intent(requireContext(), PayActivity.class);
+                intent.putExtra("cartItems", (Serializable) selectedItems);
+                startActivity(intent);
             }
         });
     }
