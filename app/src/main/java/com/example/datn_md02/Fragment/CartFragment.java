@@ -1,5 +1,6 @@
 package com.example.datn_md02.Fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -112,6 +113,8 @@ public class CartFragment extends Fragment {
             } else {
                 Toast.makeText(requireContext(), "Đã chọn " + selectedItems.size() + " sản phẩm", Toast.LENGTH_SHORT).show();
                 // TODO: Chuyển sang màn hình thanh toán
+                Intent intent = new Intent(requireContext(), PayFragment.class);
+                startActivity(intent);
             }
         });
     }
