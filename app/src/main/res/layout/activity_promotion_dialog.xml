@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/bg_white_rounded">
+
+    <!-- Tiêu đề -->
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Chọn mã khuyến mãi"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#000"
+        android:gravity="center"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Danh sách mã khuyến mãi -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvPromotions"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:overScrollMode="never"
+        android:scrollbars="vertical" />
+
+</LinearLayout>

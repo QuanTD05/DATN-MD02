@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="12dp"
+    android:background="@drawable/bg_white_rounded"
+    android:gravity="center_vertical"
+    android:layout_marginBottom="8dp">
+
+    <!-- Cột trái: Mã & mô tả -->
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1">
+
+        <TextView
+            android:id="@+id/tvPromoCode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="QUANKA"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#000000" />
+
+        <TextView
+            android:id="@+id/tvPromoDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Giảm 25% toàn bộ"
+            android:textSize="13sp"
+            android:textColor="#777777"
+            android:layout_marginTop="2dp" />
+    </LinearLayout>
+
+    <!-- Cột phải: phần trăm giảm -->
+    <TextView
+        android:id="@+id/tvPromoDiscount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="-25%"
+        android:textStyle="bold"
+        android:textSize="15sp"
+        android:textColor="#1EAA63" />
+</LinearLayout>

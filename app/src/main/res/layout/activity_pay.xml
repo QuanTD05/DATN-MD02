@@ -124,6 +124,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Thẻ/Tài khoản ngân hàng" />
+            <RadioButton
+                android:id="@+id/rbZaloPay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ZaloPay (AppToApp)" />
+
         </RadioGroup>
 
         <!-- Thẻ ngân hàng -->

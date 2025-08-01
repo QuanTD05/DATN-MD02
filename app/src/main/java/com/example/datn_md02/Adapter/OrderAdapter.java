@@ -11,6 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.datn_md02.Model.CartItem;
@@ -104,6 +105,21 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                     Intent intent = new Intent(context, ReviewActivity.class);
                     intent.putExtra("items", reviewItems);
                     context.startActivity(intent);
+                });
+                break;
+            case "pending":
+                holder.btnAction.setVisibility(View.VISIBLE);
+                holder.btnAction.setText("Huỷ đơn");
+
+                holder.btnAction.setOnClickListener(v -> {
+                    new AlertDialog.Builder(context)
+                            .setTitle("Xác nhận huỷ")
+                            .setMessage("Bạn có chắc chắn muốn huỷ đơn hàng này?")
+                            .setPositiveButton("Huỷ", (dialog, which) -> {
+                                updateOrderStatus(order, "cancelled"); // hoặc "canceled" tùy backend
+                            })
+                            .setNegativeButton("Không", null)
+                            .show();
                 });
                 break;
         }

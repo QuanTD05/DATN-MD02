@@ -1,5 +1,7 @@
 package com.example.datn_md02.Fragment;
 
+import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,6 +19,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.bumptech.glide.Glide;
 import com.example.datn_md02.R;
+import com.example.datn_md02.StartActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.*;
@@ -83,10 +86,22 @@ public class ProfileFragment extends Fragment {
 
         // Nút Logout
         btnLogout.setOnClickListener(v -> {
-            auth.signOut();
-            Toast.makeText(getContext(), "Đã đăng xuất", Toast.LENGTH_SHORT).show();
-            requireActivity().finish();
+            new AlertDialog.Builder(requireContext())
+                    .setTitle("Đăng xuất")
+                    .setMessage("Bạn có chắc chắn muốn đăng xuất không?")
+                    .setPositiveButton("Đăng xuất", (dialog, which) -> {
+                        auth.signOut();
+                        Toast.makeText(getContext(), "Đã đăng xuất", Toast.LENGTH_SHORT).show();
+
+                        Intent intent = new Intent(getContext(), StartActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                    })
+                    .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
+                    .show();
         });
+
+
 
         // Chuyển đến MyReviewFragment
         LinearLayout layoutReview = view.findViewById(R.id.layoutReview);
