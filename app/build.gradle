@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.datn_md02"
-        minSdk 31
+        minSdk 35
         targetSdk 34
         versionCode 1
         versionName "1.0"
@@ -34,6 +34,9 @@ android {
             excludes += ['META-INF/NOTICE.md', 'META-INF/LICENSE.md', 'META-INF/LICENSE', 'META-INF/DEPENDENCIES']
         }
     }
+    buildToolsVersion '34.0.0'
+
+
 }
 
 dependencies {
@@ -58,10 +61,16 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.16.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
     implementation 'com.google.code.gson:gson:2.10.1'
-    implementation 'com.google.firebase:firebase-database:20.3.0'
-    implementation 'com.google.firebase:firebase-storage:20.3.0' // hoặc version mới nhất
-    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.firebase:firebase-storage:20.3.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.10.0'
+
+    testImplementation 'junit:junit:4.13'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     implementation("com.squareup.okhttp3:okhttp:4.6.0")
     implementation("commons-codec:commons-codec:1.14")
+    implementation(name: 'zpdk-release-v3.1', ext: 'aar')
+    implementation 'com.google.code.gson:gson:2.10.1'
+
 
 }

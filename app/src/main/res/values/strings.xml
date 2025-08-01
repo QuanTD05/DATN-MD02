@@ -18,11 +18,11 @@
         <item name="colorControlActivated">#FFD700</item> <!-- Vàng kim -->
         <item name="colorControlNormal">#CCCCCC</item>
     </style>
+
     <style name="CircleImage" parent="">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
-
 
 
 </resources>
