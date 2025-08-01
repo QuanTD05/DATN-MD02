@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.datn_md02"
-        minSdk 35
+        minSdk 31
         targetSdk 34
         versionCode 1
         versionName "1.0"
@@ -41,6 +41,7 @@ dependencies {
     implementation libs.material
     implementation libs.activity
     implementation libs.constraintlayout
+    implementation fileTree(dir: 'D:\\zalopay', include: ['*.aar', '*.jar'], exclude: [])
 
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
@@ -60,9 +61,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-database:20.3.0'
     implementation 'com.google.firebase:firebase-storage:20.3.0' // hoặc version mới nhất
     implementation 'androidx.appcompat:appcompat:1.6.1'
-
-
-
-
+    implementation("com.squareup.okhttp3:okhttp:4.6.0")
+    implementation("commons-codec:commons-codec:1.14")
 
 }

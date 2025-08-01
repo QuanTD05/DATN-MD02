@@ -1,6 +1,7 @@
 package com.example.datn_md02;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.*;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,12 +13,20 @@ import com.example.datn_md02.Model.Cart;
 import com.example.datn_md02.Model.CartItem;
 import com.example.datn_md02.Model.NotificationItem;
 import com.example.datn_md02.Model.Order;
+import com.example.datn_md02.Zalopay.AppInfo;
+import com.example.datn_md02.Zalopay.Helper.Helpers;
+import com.example.datn_md02.Zalopay.HttpProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.*;
 
+import org.json.JSONObject;
+
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import okhttp3.FormBody;
+import okhttp3.RequestBody;
 
 public class PayActivity extends AppCompatActivity {
 
@@ -26,6 +35,7 @@ public class PayActivity extends AppCompatActivity {
     private RecyclerView rvCartItems;
     private RadioButton rbCOD, rbCard;
     private Button btnCheckout;
+    private TextView btnzalopay;
 
     private FirebaseUser firebaseUser;
     private DatabaseReference dbRef;
@@ -37,6 +47,8 @@ public class PayActivity extends AppCompatActivity {
     private double subtotal = 0.0;
     private double discount = 0.0;
     private String appliedCouponCode = "";
+
+    private boolean isZaloPaySelected = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +70,14 @@ public class PayActivity extends AppCompatActivity {
         rbCOD = findViewById(R.id.rbCOD);
         rbCard = findViewById(R.id.rbCard);
         btnCheckout = findViewById(R.id.btnCheckout);
+        btnzalopay = findViewById(R.id.rbZaloPay);
+
+        btnzalopay.setOnClickListener(v -> {
+            isZaloPaySelected = true;
+            rbCOD.setChecked(false);
+            rbCard.setChecked(false);
+            Toast.makeText(this, "Đã chọn ZaloPay", Toast.LENGTH_SHORT).show();
+        });
 
         cartItems = (ArrayList<Cart>) getIntent().getSerializableExtra("cartItems");
         cartOrderAdapter = new CartOrderAdapter(cartItems);
@@ -103,7 +123,6 @@ public class PayActivity extends AppCompatActivity {
                             tvReceiverAddress.setText(address);
                         }
                     }
-
                     @Override public void onCancelled(@NonNull DatabaseError error) {}
                 });
     }
@@ -123,7 +142,6 @@ public class PayActivity extends AppCompatActivity {
                             }
                         }
                     }
-
                     @Override public void onCancelled(@NonNull DatabaseError error) {}
                 });
     }
@@ -134,19 +152,16 @@ public class PayActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 double maxDiscount = 0;
                 String bestCode = "";
-
                 for (DataSnapshot promoSnap : snapshot.getChildren()) {
                     Boolean isActive = promoSnap.child("is_active").getValue(Boolean.class);
                     Boolean applyAll = promoSnap.child("apply_to_all").getValue(Boolean.class);
                     Long discountValue = promoSnap.child("discount").getValue(Long.class);
                     String code = promoSnap.child("code").getValue(String.class);
-
                     if (isActive != null && isActive && applyAll != null && applyAll && discountValue != null && discountValue > maxDiscount) {
                         maxDiscount = discountValue;
                         bestCode = code;
                     }
                 }
-
                 if (maxDiscount > 0) {
                     appliedCouponCode = bestCode;
                     discount = maxDiscount;
@@ -157,39 +172,61 @@ public class PayActivity extends AppCompatActivity {
                     Toast.makeText(PayActivity.this, "Không có mã hợp lệ", Toast.LENGTH_SHORT).show();
                 }
             }
-
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 
     private void handleCheckout() {
-        if (!rbCOD.isChecked() && !rbCard.isChecked()) {
+        if (!rbCOD.isChecked() && !rbCard.isChecked() && !isZaloPaySelected) {
             Toast.makeText(this, "Vui lòng chọn phương thức thanh toán", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String paymentMethod = rbCOD.isChecked() ? "COD" : "Card";
+        if (isZaloPaySelected) {
+            double totalAmount = subtotal + shippingFee - discount;
+            String amount = String.valueOf((long) totalAmount);
+            new Thread(() -> {
+                try {
+                    JSONObject result = createZaloPayOrder(amount);
+                    runOnUiThread(() -> {
+                        try {
+                            if (result.has("return_code") && result.getInt("return_code") == 1) {
+                                Toast.makeText(this, "Tạo đơn hàng ZaloPay thành công", Toast.LENGTH_SHORT).show();
+                                placeOrderToFirebase("ZaloPay", result.getString("zp_trans_token"));
+                            } else {
+                                Toast.makeText(this, "ZaloPay thất bại: " + result.toString(), Toast.LENGTH_LONG).show();
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }).start();
+        } else {
+            String paymentMethod = rbCOD.isChecked() ? "COD" : "Card";
+            placeOrderToFirebase(paymentMethod, null);
+        }
+    }
+
+    private void placeOrderToFirebase(String paymentMethod, String zaloPayToken) {
         String orderId = dbRef.child("orders").push().getKey();
         String userId = firebaseUser.getUid();
-
-        if (orderId == null) {
-            Toast.makeText(this, "Lỗi tạo đơn hàng", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        if (orderId == null) return;
 
         double totalAmount = subtotal + shippingFee - discount;
         String address = tvReceiverAddress.getText().toString();
         String receiver = tvReceiverName.getText().toString();
 
         String cardLastFour = "";
-        if (rbCard.isChecked()) {
+        if (paymentMethod.equals("Card")) {
             String cardText = tvCardNumber.getText().toString();
             if (cardText.contains(" ")) {
                 cardLastFour = cardText.substring(cardText.lastIndexOf(" ") + 1);
             }
         }
 
-        // ✅ Tạo danh sách CartItem có set productId
         List<CartItem> convertedItems = new ArrayList<>();
         for (Cart cart : cartItems) {
             String variantStr = "";
@@ -197,53 +234,55 @@ public class PayActivity extends AppCompatActivity {
                 variantStr = "Màu: " + (cart.getVariantColor() != null ? cart.getVariantColor() : "") +
                         " - Size: " + (cart.getVariantSize() != null ? cart.getVariantSize() : "");
             }
-
-            CartItem cartItem = new CartItem(
-                    cart.getProductName(),
-                    cart.getImageUrl(),
-                    variantStr,
-                    cart.getQuantity(),
-                    cart.getPrice()
-            );
-            cartItem.setProductId(cart.getProductId()); // ✅ Gán productId
-
+            CartItem cartItem = new CartItem(cart.getProductName(), cart.getImageUrl(), variantStr, cart.getQuantity(), cart.getPrice());
+            cartItem.setProductId(cart.getProductId());
             convertedItems.add(cartItem);
         }
 
-        Order order = new Order(
-                orderId,
-                userId,
-                receiver,
-                address,
-                paymentMethod,
-                cardLastFour,
-                convertedItems,
-                subtotal,
-                shippingFee,
-                discount,
-                totalAmount,
-                appliedCouponCode,
-                System.currentTimeMillis(),
-                "pending"
-        );
+        Order order = new Order(orderId, userId, receiver, address, paymentMethod, cardLastFour,
+                convertedItems, subtotal, shippingFee, discount, totalAmount, appliedCouponCode,
+                System.currentTimeMillis(), "pending");
 
         dbRef.child("orders").child(userId).child(orderId).setValue(order)
                 .addOnSuccessListener(unused -> {
                     for (Cart item : cartItems) {
                         dbRef.child("Cart").child(userId).child(item.getCartId()).removeValue();
                     }
-
-                    String message = "🛒 Bạn đã đặt hàng thành công lúc " +
+                    String message = "🛒 Đặt hàng thành công lúc " +
                             new SimpleDateFormat("HH:mm dd/MM/yyyy", Locale.getDefault()).format(new Date());
-
                     NotificationItem notification = new NotificationItem(System.currentTimeMillis(), message);
                     dbRef.child("notifications").child(userId).push().setValue(notification);
-
-                    Toast.makeText(this, "Thanh toán thành công!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "Đặt hàng thành công!", Toast.LENGTH_LONG).show();
                     finish();
                 })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Lỗi khi thanh toán: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Lỗi khi tạo đơn hàng: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
+    private JSONObject createZaloPayOrder(String amount) throws Exception {
+        long appTime = new Date().getTime();
+        String appTransId = Helpers.getAppTransId();
+        String embedData = "{}";
+        String items = "[]";
+        String appUser = "Android_Demo";
+
+        String inputHMac = String.format("%s|%s|%s|%s|%s|%s|%s",
+                AppInfo.APP_ID, appTransId, appUser, amount, appTime, embedData, items);
+        String mac = Helpers.getMac(AppInfo.MAC_KEY, inputHMac);
+
+        RequestBody formBody = new FormBody.Builder()
+                .add("app_id", String.valueOf(AppInfo.APP_ID))
+                .add("app_user", appUser)
+                .add("app_time", String.valueOf(appTime))
+                .add("amount", amount)
+                .add("app_trans_id", appTransId)
+                .add("embed_data", embedData)
+                .add("item", items)
+                .add("bank_code", "zalopayapp")
+                .add("description", "Thanh toán đơn hàng #" + appTransId)
+                .add("mac", mac)
+                .build();
+
+        return HttpProvider.sendPost(AppInfo.URL_CREATE_ORDER, formBody);
     }
 }
