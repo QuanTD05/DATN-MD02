@@ -44,6 +44,7 @@ dependencies {
     implementation libs.material
     implementation libs.activity
     implementation libs.constraintlayout
+    implementation fileTree(dir: 'D:\\zalopay', include: ['*.aar', '*.jar'], exclude: [])
 
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
