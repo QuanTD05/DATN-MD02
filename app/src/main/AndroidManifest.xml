@@ -38,16 +38,16 @@
         <!-- PayActivity với intent-filter nhận callback URI -->
         <activity
             android:name=".PayActivity"
-            android:exported="true"
-            android:launchMode="singleTask">
+            android:launchMode="singleTask"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="demozpdk"
-                    android:host="app" />
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="demozpdk" android:host="app"/>
             </intent-filter>
         </activity>
+
 
         <!-- Splash / Launcher -->
         <activity
