@@ -8,7 +8,7 @@
     <!-- Viền đỏ -->
     <stroke
         android:width="2dp"
-        android:color="#F44336" />
+        android:color="#52F436" />
 
     <!-- Bo tròn góc -->
     <corners android:radius="10dp" />
