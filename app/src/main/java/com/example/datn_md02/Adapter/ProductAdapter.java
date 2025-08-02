@@ -90,6 +90,13 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
     public int getItemCount() {
         return productList != null ? productList.size() : 0;
     }
+    @SuppressLint("NotifyDataSetChanged")
+    public void updateData(List<Product> newList) {
+        productList.clear();
+        productList.addAll(newList);
+        notifyDataSetChanged();
+    }
+
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imageProduct;
