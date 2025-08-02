@@ -1,26 +1,23 @@
 package com.example.datn_md02.Fragment;
 
-import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.content.Intent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.*;
 
 import com.example.datn_md02.Adapter.ProductAdapter;
 import com.example.datn_md02.Cart.CartActivity;
-import com.example.datn_md02.Model.Product;
-import com.example.datn_md02.Model.Review;
-import com.example.datn_md02.Model.Variant;
+import com.example.datn_md02.Model.*;
 import com.example.datn_md02.Product.AllProductActivity;
 import com.example.datn_md02.Product.ProductDetailActivity;
 import com.example.datn_md02.R;
@@ -35,10 +32,11 @@ public class HomeFragment extends Fragment {
     private RecyclerView recyclerAllProduct;
     private ProductAdapter allProductAdapter;
     private List<Product> allProductList;
+    private List<Product> filteredList;
     private DatabaseReference productRef;
 
     private TextView tvAll;
-    private boolean isSearchTriggered = false;
+    private EditText edtSearch;
 
     @Nullable
     @Override
@@ -48,25 +46,27 @@ public class HomeFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
-        // Firebase
         productRef = FirebaseDatabase.getInstance().getReference("product");
 
-        // TẤT CẢ SẢN PHẨM
+        // Setup RecyclerView
         recyclerAllProduct = view.findViewById(R.id.recyclerAllProduct);
         recyclerAllProduct.setLayoutManager(new GridLayoutManager(getContext(), 2));
+
         allProductList = new ArrayList<>();
-        allProductAdapter = new ProductAdapter(getContext(), allProductList, product -> {
+        filteredList = new ArrayList<>();
+
+        allProductAdapter = new ProductAdapter(getContext(), filteredList, product -> {
             Intent intent = new Intent(getContext(), ProductDetailActivity.class);
             intent.putExtra("product", product);
             startActivity(intent);
         });
         recyclerAllProduct.setAdapter(allProductAdapter);
+
+        // Giỏ hàng
         ImageView ivCart = view.findViewById(R.id.ic_cart);
-        ivCart.setOnClickListener(v -> {
-            Intent intent = new Intent(getContext(), CartActivity.class);
-            startActivity(intent);
-        });
-        // Nút "Tất cả"
+        ivCart.setOnClickListener(v -> startActivity(new Intent(getContext(), CartActivity.class)));
+
+        // "Tất cả" chuyển sang AllProductActivity
         tvAll = view.findViewById(R.id.tvAll);
         tvAll.setOnClickListener(v -> {
             Intent intent = new Intent(getContext(), AllProductActivity.class);
@@ -74,10 +74,10 @@ public class HomeFragment extends Fragment {
             startActivity(intent);
         });
 
-        // Load dữ liệu
+        // Load dữ liệu ban đầu
         loadAllProducts();
 
-        // Tìm kiếm + Danh mục
+        // Tìm kiếm và danh mục
         setupSearchAndCategory(view);
 
         return view;
@@ -94,6 +94,9 @@ public class HomeFragment extends Fragment {
                         allProductList.add(product);
                     }
                 }
+                // Ban đầu hiển thị tất cả
+                filteredList.clear();
+                filteredList.addAll(allProductList);
                 allProductAdapter.notifyDataSetChanged();
             }
 
@@ -161,16 +164,27 @@ public class HomeFragment extends Fragment {
     }
 
     private void setupSearchAndCategory(View view) {
-        EditText edtSearch = view.findViewById(R.id.edtSearch);
+        edtSearch = view.findViewById(R.id.edtSearch);
 
-        edtSearch.setOnEditorActionListener((v, actionId, event) -> {
-            if (isSearchTriggered) return true;
-            String keyword = edtSearch.getText().toString().trim();
-            if (!keyword.isEmpty()) {
-                isSearchTriggered = true;
-                openAllProductWithSearch(keyword);
+        edtSearch.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override public void afterTextChanged(Editable s) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String keyword = s.toString().trim().toLowerCase(Locale.ROOT);
+                filteredList.clear();
+                if (keyword.isEmpty()) {
+                    filteredList.addAll(allProductList);
+                } else {
+                    for (Product p : allProductList) {
+                        if (p.getName() != null && p.getName().toLowerCase().contains(keyword)) {
+                            filteredList.add(p);
+                        }
+                    }
+                }
+                allProductAdapter.notifyDataSetChanged();
             }
-            return true;
         });
 
         view.findViewById(R.id.itemCategoryBan).setOnClickListener(v -> openAllProductWithCategory("ban", "bàn"));
@@ -180,24 +194,11 @@ public class HomeFragment extends Fragment {
         view.findViewById(R.id.itemCategoryKe).setOnClickListener(v -> openAllProductWithCategory("ke", "kệ"));
     }
 
-    private void openAllProductWithSearch(String keyword) {
-        Log.d(TAG, "🔍 Mở AllProductActivity với từ khóa: " + keyword);
-        Intent intent = new Intent(getContext(), AllProductActivity.class);
-        intent.putExtra("keyword", keyword.toLowerCase(Locale.ROOT));
-        startActivity(intent);
-    }
-
     private void openAllProductWithCategory(String categoryId, String categoryName) {
         Log.d(TAG, "📂 Mở AllProductActivity với loại: " + categoryName);
         Intent intent = new Intent(getContext(), AllProductActivity.class);
         intent.putExtra("categoryId", categoryId);
         intent.putExtra("categoryName", categoryName);
         startActivity(intent);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        isSearchTriggered = false;
     }
 }
