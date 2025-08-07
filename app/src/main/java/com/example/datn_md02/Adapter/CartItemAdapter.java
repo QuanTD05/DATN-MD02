@@ -27,7 +27,7 @@ public class CartItemAdapter extends RecyclerView.Adapter<CartItemAdapter.CartIt
     @Override
     public CartItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_cart_simple, parent, false);
+                .inflate(R.layout.item_cart_order, parent, false);
         return new CartItemViewHolder(view);
     }
 
@@ -35,6 +35,8 @@ public class CartItemAdapter extends RecyclerView.Adapter<CartItemAdapter.CartIt
     public void onBindViewHolder(@NonNull CartItemViewHolder holder, int position) {
         CartItem item = items.get(position);
         holder.tvName.setText(item.getProductName());
+
+        holder.tvVariant.setText("Màu: " + item.getVariantColor() + " - Size: " + item.getVariantSize());
         holder.tvQuantity.setText("x" + item.getQuantity());
         holder.tvPrice.setText(String.format("%,.0f VND", item.getPrice() * item.getQuantity()));
 
@@ -50,12 +52,13 @@ public class CartItemAdapter extends RecyclerView.Adapter<CartItemAdapter.CartIt
 
     static class CartItemViewHolder extends RecyclerView.ViewHolder {
         ImageView imgProduct;
-        TextView tvName, tvQuantity, tvPrice;
+        TextView tvName, tvVariant, tvQuantity, tvPrice;
 
         public CartItemViewHolder(@NonNull View itemView) {
             super(itemView);
             imgProduct = itemView.findViewById(R.id.imgProduct);
-            tvName = itemView.findViewById(R.id.tvProductName);
+            tvName = itemView.findViewById(R.id.tvName);
+            tvVariant = itemView.findViewById(R.id.tvVariant);
             tvQuantity = itemView.findViewById(R.id.tvQuantity);
             tvPrice = itemView.findViewById(R.id.tvPrice);
         }

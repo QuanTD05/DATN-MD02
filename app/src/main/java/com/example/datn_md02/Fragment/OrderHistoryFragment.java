@@ -14,8 +14,10 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.datn_md02.Oder.CancelledOrderFragment;
 import com.example.datn_md02.Oder.CompletedOrderFragmen;
+import com.example.datn_md02.Oder.FilteredOrderListFragment;
 import com.example.datn_md02.Oder.OnDeliveryFragment;
 import com.example.datn_md02.Oder.PendingOrderFragment;
+import com.example.datn_md02.Oder.ReturnOrderFragment;
 import com.example.datn_md02.R;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
@@ -49,9 +51,16 @@ public class OrderHistoryFragment extends Fragment {
                             tab.setText("Đang giao");
                             break;
                         case 2:
-                            tab.setText("Đã hoàn thành");
+                            tab.setText("Đã Giao");
                             break;
+
                         case 3:
+                            tab.setText(" Y/c Trả hàng");
+                            break;
+                        case 4:
+                            tab.setText("Trả hàng");
+                            break;
+                        case 5:
                             tab.setText("Đã huỷ");
                             break;
                     }
@@ -77,6 +86,11 @@ public class OrderHistoryFragment extends Fragment {
                 case 2:
                     return new CompletedOrderFragmen();
                 case 3:
+                    return new FilteredOrderListFragment();
+
+                case 4:
+                    return new ReturnOrderFragment();
+                case 5:
                     return new CancelledOrderFragment();
                 default:
                     return new PendingOrderFragment();
@@ -85,7 +99,7 @@ public class OrderHistoryFragment extends Fragment {
 
         @Override
         public int getItemCount() {
-            return 4; // 4 tab: Chờ xử lý, Đang giao, Đã hoàn thành, Đã huỷ
+            return 6; // 4 tab: Chờ xử lý, Đang giao, Đã hoàn thành, Đã huỷ
         }
     }
 }

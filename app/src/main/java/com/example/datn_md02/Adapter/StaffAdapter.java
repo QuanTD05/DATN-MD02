@@ -1,6 +1,9 @@
 package com.example.datn_md02.Adapter;
 
-import android.graphics.Typeface;
+import android.content.Context;
+import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,125 +12,81 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
+import com.bumptech.glide.Glide;
+import com.example.datn_md02.ChatActivity;
 import com.example.datn_md02.Model.User;
 import com.example.datn_md02.R;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class StaffAdapter extends RecyclerView.Adapter<StaffAdapter.StaffViewHolder> {
+public class StaffAdapter extends RecyclerView.Adapter<StaffAdapter.VH> {
+    public interface OnClick { void onClick(User u); }
+    private final List<User> list;
+    private final Context ctx;
+    private final OnClick listener;
 
-    public interface OnStaffClickListener {
-        void onStaffClick(User user);
-    }
-
-    private final List<User> originalList;
-    private final List<User> filteredList;
-    private final OnStaffClickListener listener;
-
-    public StaffAdapter(List<User> userList, OnStaffClickListener listener) {
-        this.originalList = new ArrayList<>(userList);
-        this.filteredList = new ArrayList<>(userList);
+    public StaffAdapter(List<User> list, Context ctx, OnClick listener) {
+        this.list = list;
+        this.ctx = ctx;
         this.listener = listener;
     }
 
-    @NonNull
-    @Override
-    public StaffViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_staff, parent, false);
-        return new StaffViewHolder(view);
+    @NonNull @Override
+    public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(ctx)
+                .inflate(R.layout.item_staff, parent, false);
+        return new VH(v);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull StaffViewHolder holder, int position) {
-        User user = filteredList.get(position);
+    public void onBindViewHolder(@NonNull VH h, int pos) {
+        User u = list.get(pos);
+        Glide.with(ctx)
+                .load(u.getAvatar())
+                .placeholder(R.drawable.ic_avatar_placeholder)
+                .circleCrop()
+                .into(h.ivAvatar);
 
-        String displayName = user.getFullName() != null ? user.getFullName() : user.getName();
-        holder.tvName.setText(displayName);
+        h.tvName.setText(u.getFullName());
+        h.tvLast.setText(u.getLastMessageText());
+        h.tvTime.setText(
+                u.getLastMessageTimestamp()>0
+                        ? new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+                        .format(new Date(u.getLastMessageTimestamp()))
+                        : ""
+        );
 
-        if (user.isHasUnread()) {
-            holder.tvName.setTypeface(null, Typeface.BOLD);
-        } else {
-            holder.tvName.setTypeface(null, Typeface.NORMAL);
-        }
+        // unread highlight
+        h.itemView.setBackgroundColor(u.isHasUnread()
+                ? Color.parseColor("#E0F2FF")
+                : Color.WHITE
+        );
 
-        holder.tvEmail.setText(user.getEmail());
+        // presence dot
+        int c = u.isOnline()
+                ? Color.parseColor("#34D399")
+                : Color.parseColor("#A0AEC0");
+        h.vDot.setBackgroundTintList(ColorStateList.valueOf(c));
 
-        long timestamp = user.getTimestamp();
-        if (timestamp > 0) {
-            holder.tvTimestamp.setText(formatTimestamp(timestamp));
-            holder.tvTimestamp.setTypeface(null, Typeface.NORMAL);
-        } else {
-            holder.tvTimestamp.setText("Chưa có tin nhắn");
-            holder.tvTimestamp.setTypeface(null, Typeface.ITALIC);
-        }
-
-        // Hiển thị badge số tin nhắn chưa đọc
-        int unreadCount = user.getUnreadCount();
-        if (unreadCount > 0) {
-            holder.tvUnreadCount.setVisibility(View.VISIBLE);
-            holder.tvUnreadCount.setText(unreadCount > 99 ? "99+" : String.valueOf(unreadCount));
-        } else {
-            holder.tvUnreadCount.setVisibility(View.GONE);
-        }
-
-        holder.itemView.setOnClickListener(v -> listener.onStaffClick(user));
+        h.itemView.setOnClickListener(v-> listener.onClick(u));
     }
 
-    @Override
-    public int getItemCount() {
-        return filteredList.size();
-    }
+    @Override public int getItemCount() { return list.size(); }
 
-    public void searchByName(String query) {
-        filteredList.clear();
-        if (query == null || query.trim().isEmpty()) {
-            filteredList.addAll(originalList);
-        } else {
-            String lowerQuery = query.toLowerCase(Locale.getDefault());
-            for (User user : originalList) {
-                String fullName = user.getFullName() != null ? user.getFullName() : "";
-                String name = user.getName() != null ? user.getName() : "";
-                if (fullName.toLowerCase().contains(lowerQuery) || name.toLowerCase().contains(lowerQuery)) {
-                    filteredList.add(user);
-                }
-            }
-        }
-        notifyDataSetChanged();
-    }
-
-    public void updateList(List<User> newList) {
-        originalList.clear();
-        originalList.addAll(newList);
-        filteredList.clear();
-        filteredList.addAll(newList);
-        notifyDataSetChanged();
-    }
-
-    static class StaffViewHolder extends RecyclerView.ViewHolder {
-        TextView tvName, tvEmail, tvTimestamp, tvUnreadCount;
-        ImageView imgAvatar;
-
-        public StaffViewHolder(@NonNull View itemView) {
-            super(itemView);
-            tvName = itemView.findViewById(R.id.tvStaffName);
-            tvEmail = itemView.findViewById(R.id.tvEmail);
-            tvTimestamp = itemView.findViewById(R.id.tvTimestamp);
-            imgAvatar = itemView.findViewById(R.id.imgAvatar);
-            tvUnreadCount = itemView.findViewById(R.id.tvUnreadCount);
-        }
-    }
-
-    private String formatTimestamp(long timestamp) {
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm dd/MM", Locale.getDefault());
-            return sdf.format(new Date(timestamp));
-        } catch (Exception e) {
-            return "";
+    static class VH extends RecyclerView.ViewHolder {
+        ImageView ivAvatar;
+        TextView tvName, tvLast, tvTime;
+        View     vDot;
+        VH(@NonNull View v) {
+            super(v);
+            ivAvatar = v.findViewById(R.id.imgAvatar);
+            tvName   = v.findViewById(R.id.tvStaffName);
+            tvLast   = v.findViewById(R.id.tvLastMessage);
+            tvTime   = v.findViewById(R.id.tvTimestamp);
+            vDot     = v.findViewById(R.id.statusDot);
         }
     }
 }

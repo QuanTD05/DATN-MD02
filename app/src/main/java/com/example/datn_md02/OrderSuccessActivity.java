@@ -31,19 +31,21 @@ public class OrderSuccessActivity extends AppCompatActivity {
         setContentView(R.layout.activity_order_success);
 
         // Gắn view
-        tvOrderId = findViewById(R.id.tvOrderId);
-        tvTotalAmount = findViewById(R.id.tvTotalAmount);
-        tvSuccessMessage = findViewById(R.id.tvSuccessMessage);
-        rvItems = findViewById(R.id.rvItems);
-        btnBackToHome = findViewById(R.id.btnBackToHome);
+        tvOrderId       = findViewById(R.id.tvOrderId);
+        tvTotalAmount   = findViewById(R.id.tvTotalAmount);
+        tvSuccessMessage= findViewById(R.id.tvSuccessMessage);
+        rvItems         = findViewById(R.id.rvItems);
+        btnBackToHome   = findViewById(R.id.btnBackToHome);
 
         // Lấy dữ liệu từ Intent
         String orderId = getIntent().getStringExtra("orderId");
         double totalAmount = getIntent().getDoubleExtra("totalAmount", 0);
-        ArrayList<CartItem> items = (ArrayList<CartItem>) getIntent().getSerializableExtra("items");
+        @SuppressWarnings("unchecked")
+        ArrayList<CartItem> items = (ArrayList<CartItem>)
+                getIntent().getSerializableExtra("cartItems");
 
         // Kiểm tra dữ liệu
-        if (orderId == null || items == null) {
+        if (orderId == null || items == null || items.isEmpty()) {
             Toast.makeText(this, "Không tìm thấy thông tin đơn hàng", Toast.LENGTH_SHORT).show();
             finish();
             return;
@@ -51,7 +53,9 @@ public class OrderSuccessActivity extends AppCompatActivity {
 
         // Hiển thị thông tin đơn
         tvOrderId.setText("Mã đơn hàng: " + orderId);
-        tvTotalAmount.setText("Tổng thanh toán: " + NumberFormat.getCurrencyInstance(new Locale("vi", "VN")).format(totalAmount));
+        tvTotalAmount.setText("Tổng thanh toán: " +
+                NumberFormat.getCurrencyInstance(new Locale("vi","VN"))
+                        .format(totalAmount));
         tvSuccessMessage.setText("\uD83C\uDF89 Cảm ơn bạn đã mua hàng!\nĐơn hàng của bạn đang được xử lý.");
 
         // Hiển thị sản phẩm

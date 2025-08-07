@@ -23,6 +23,7 @@ import com.example.datn_md02.StartActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.*;
+import com.pusher.pushnotifications.PushNotifications;
 
 public class ProfileFragment extends Fragment {
 
@@ -90,9 +91,14 @@ public class ProfileFragment extends Fragment {
                     .setTitle("Đăng xuất")
                     .setMessage("Bạn có chắc chắn muốn đăng xuất không?")
                     .setPositiveButton("Đăng xuất", (dialog, which) -> {
-                        auth.signOut();
+                        // 1) Clear tất cả interests trên Pusher Beams
+                        PushNotifications.clearDeviceInterests();
+
+                        // 2) Sign out Firebase
+                        FirebaseAuth.getInstance().signOut();
                         Toast.makeText(getContext(), "Đã đăng xuất", Toast.LENGTH_SHORT).show();
 
+                        // 3) Chuyển về StartActivity, xoá hết back stack
                         Intent intent = new Intent(getContext(), StartActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);

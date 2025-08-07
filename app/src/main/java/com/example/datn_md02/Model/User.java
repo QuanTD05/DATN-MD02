@@ -1,76 +1,49 @@
 package com.example.datn_md02.Model;
 
+import com.google.firebase.database.IgnoreExtraProperties;
+
+@IgnoreExtraProperties
 public class User {
-    // Các trường hiện có
-    private String name;
-    private String fullName;
+    private String fullName;    // đổi từ name → fullName
     private String email;
+    private String avatar;      // tương ứng với key “avatar” trong DB
     private String role;
-    private long timestamp;
+    private long lastMessageTimestamp;
+    private String lastMessageText;
+    private boolean online;
+    private int unreadCount;
     private boolean hasUnread;
 
-    // Thêm trường mới
-    private int unreadCount = 0;
+    public User() {}
 
-    public User() {
-        // constructor mặc định
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getAvatar() { return avatar; }
+    public void setAvatar(String avatar) { this.avatar = avatar; }
+
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
+
+    public long getLastMessageTimestamp() { return lastMessageTimestamp; }
+    public void setLastMessageTimestamp(long lastMessageTimestamp) {
+        this.lastMessageTimestamp = lastMessageTimestamp;
     }
 
-    // getter/setter hiện tại ...
-
-    public int getUnreadCount() {
-        return unreadCount;
+    public String getLastMessageText() { return lastMessageText; }
+    public void setLastMessageText(String lastMessageText) {
+        this.lastMessageText = lastMessageText;
     }
 
-    public void setUnreadCount(int unreadCount) {
-        this.unreadCount = unreadCount;
-    }
+    public boolean isOnline() { return online; }
+    public void setOnline(boolean online) { this.online = online; }
 
-    public boolean isHasUnread() {
-        return hasUnread;
-    }
+    public int getUnreadCount() { return unreadCount; }
+    public void setUnreadCount(int unreadCount) { this.unreadCount = unreadCount; }
 
-    public void setHasUnread(boolean hasUnread) {
-        this.hasUnread = hasUnread;
-    }
-
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
+    public boolean isHasUnread() { return hasUnread; }
+    public void setHasUnread(boolean hasUnread) { this.hasUnread = hasUnread; }
 }
