@@ -13,7 +13,12 @@ pluginManagement {
             dirs 'app/libs'
         }
     }
+    // Đăng ký plugin OneSignal và version
+    plugins {
+        id "com.onesignal.androidsdk.onesignal-gradle-plugin" version "0.15.0"
+    }
 }
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -22,6 +27,7 @@ dependencyResolutionManagement {
         flatDir {
             dirs 'app/libs'
         }
+
     }
 }
 
