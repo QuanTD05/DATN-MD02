@@ -57,9 +57,9 @@
                         android:id="@+id/btnCart"
                         android:layout_width="36dp"
                         android:layout_height="36dp"
-                        android:background="@drawable/bg_gray_rounded"
+                        android:background="@drawable/circle_background"
                         android:padding="6dp"
-                        android:src="@drawable/ic_cart" />
+                        android:src="@drawable/ic_cart_white" />
 
                     <!-- Badge số lượng -->
                     <TextView
@@ -67,10 +67,10 @@
                         android:layout_width="18dp"
                         android:layout_height="18dp"
                         android:layout_gravity="end|top"
-                        android:background="@drawable/bg_card_bank"
+                        android:background="@drawable/circle_background"
                         android:gravity="center"
                         android:text="50"
-                        android:textColor="@color/error"
+                        android:textColor="@color/black"
                         android:textSize="10sp"
                         android:visibility="gone" />
                 </FrameLayout>
