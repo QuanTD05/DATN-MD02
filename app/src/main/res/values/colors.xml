@@ -35,7 +35,8 @@
     <color name="divider">#E0E0E0</color>
     <color name="neutral_background">#F5F5F5</color>
 
-    <!-- Thêm dòng này để fix lỗi pink -->
+    <color name="red">#FF0000</color>
+
     <color name="pink">#FF4081</color>
     <color name="pink_light">#FCE4EC</color>
 
@@ -44,6 +45,8 @@
 
     <color name="purple_700">#3700B3</color>
     <color name="green_dark">#3D7041</color>
+
+    <color name="red_or_orange">#FF6F00</color> <!-- cam -->
 
 
 </resources>

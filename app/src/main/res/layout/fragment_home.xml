@@ -62,12 +62,35 @@
             </LinearLayout>
 
             <!-- Phải: Giỏ hàng -->
-            <ImageView
-                android:id="@+id/ic_cart"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_cart"
-                app:tint="@color/accent" />
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <!-- Icon giỏ hàng -->
+                <ImageView
+                    android:id="@+id/ic_cart"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:src="@drawable/ic_cart"
+                    android:scaleType="fitCenter"
+                    app:tint="@color/error" />
+
+                <!-- Badge thông báo -->
+                <TextView
+                    android:id="@+id/cart_badge"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_gravity="top|end"
+                    android:layout_marginTop="-4dp"
+                    android:layout_marginEnd="-4dp"
+                    android:background="@drawable/bg_edittext"
+                    android:gravity="center"
+                    android:text="50"
+                    android:textColor="@color/red_or_orange"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
+
         </LinearLayout>
 
         <!-- Thanh tìm kiếm -->
@@ -115,7 +138,6 @@
             android:src="@drawable/hehe" />
 
         <!-- Danh mục -->
-        <!-- Đồ Nội Thất + Tất cả -->
         <LinearLayout
             android:layout_marginTop="16dp"
             android:layout_width="match_parent"
@@ -146,7 +168,7 @@
                 android:focusable="true" />
         </LinearLayout>
 
-
+        <!-- Phần danh mục ngang -->
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -158,7 +180,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <!-- Danh mục 1 -->
+                <!-- Danh mục (ví dụ 1) -->
                 <LinearLayout
                     android:id="@+id/itemCategoryBan"
                     android:layout_width="60dp"
@@ -185,7 +207,8 @@
                         android:gravity="center" />
                 </LinearLayout>
 
-                <!-- Danh mục 2 -->
+
+                <!-- Danh mục Ghế -->
                 <LinearLayout
                     android:id="@+id/itemCategoryGhe"
                     android:layout_width="60dp"
@@ -212,7 +235,7 @@
                         android:gravity="center" />
                 </LinearLayout>
 
-                <!-- Danh mục 3 -->
+                <!-- Danh mục Tủ -->
                 <LinearLayout
                     android:id="@+id/itemCategoryTu"
                     android:layout_width="60dp"
@@ -239,7 +262,7 @@
                         android:gravity="center" />
                 </LinearLayout>
 
-                <!-- Danh mục 4 -->
+                <!-- Danh mục Giường -->
                 <LinearLayout
                     android:id="@+id/itemCategoryGiuong"
                     android:layout_width="60dp"
@@ -266,7 +289,7 @@
                         android:gravity="center" />
                 </LinearLayout>
 
-                <!-- Danh mục 5 -->
+                <!-- Danh mục Kệ -->
                 <LinearLayout
                     android:id="@+id/itemCategoryKe"
                     android:layout_width="60dp"
@@ -292,6 +315,8 @@
                         android:textColor="@color/white"
                         android:gravity="center" />
                 </LinearLayout>
+
+                <!-- Thêm các danh mục khác tương tự... -->
             </LinearLayout>
         </HorizontalScrollView>
 
@@ -311,8 +336,6 @@
                 android:textStyle="bold"
                 android:textSize="16sp"
                 android:textColor="@color/black" />
-
-
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
@@ -321,7 +344,5 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:nestedScrollingEnabled="false" />
-
-
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

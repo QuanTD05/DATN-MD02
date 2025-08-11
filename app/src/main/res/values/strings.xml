@@ -24,5 +24,8 @@
         <item name="cornerSize">50%</item>
     </style>
 
+    <string name="cart">Giỏ hàng</string>
+
+
 
 </resources>

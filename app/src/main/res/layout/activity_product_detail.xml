@@ -45,15 +45,36 @@
                     android:layout_gravity="top|start" />
 
                 <!-- Nút giỏ hàng -->
-                <ImageView
-                    android:id="@+id/btnCart"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:layout_margin="16dp"
-                    android:background="@drawable/bg_circle_gray"
-                    android:padding="6dp"
-                    android:src="@drawable/ic_cart_white"
-                    android:layout_gravity="top|end" />
+                <!-- Nút giỏ hàng có badge -->
+                <FrameLayout
+                    android:id="@+id/cartContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|end"
+                    android:layout_margin="16dp">
+
+                    <ImageView
+                        android:id="@+id/btnCart"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="@drawable/bg_gray_rounded"
+                        android:padding="6dp"
+                        android:src="@drawable/ic_cart" />
+
+                    <!-- Badge số lượng -->
+                    <TextView
+                        android:id="@+id/tvCartBadge"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_gravity="end|top"
+                        android:background="@drawable/bg_card_bank"
+                        android:gravity="center"
+                        android:text="50"
+                        android:textColor="@color/error"
+                        android:textSize="10sp"
+                        android:visibility="gone" />
+                </FrameLayout>
+
             </FrameLayout>
 
             <!-- Nội dung còn lại -->
