@@ -31,9 +31,9 @@ import java.util.*;
 public class ProductDetailActivity extends AppCompatActivity {
 
     private Product product;
-    private ImageView imgProduct, btnBack, btnCart, btnIncrease,btnDecrease;
+    private ImageView imgProduct, btnBack, btnCart, btnIncrease, btnDecrease;
     private Button btnAddToCart;
-    private TextView tvName, tvPrice, tvQuantity, tvTotal, tvDescription, tvCreated, tvRating;
+    private TextView tvName, tvPrice, tvQuantity, tvTotal, tvDescription, tvCreated, tvRating, tvCartBadge;
     private RecyclerView recyclerViewVariant, recyclerReviews;
     private VariantAdapter variantAdapter;
     private ReviewAdapter reviewAdapter;
@@ -58,8 +58,8 @@ public class ProductDetailActivity extends AppCompatActivity {
         }
 
         setEventHandlers();
+        loadCartItemCount(); // 🔹 Thêm mới
 
-        btnCart = findViewById(R.id.btnCart);
         btnCart.setOnClickListener(view -> {
             Intent intent = new Intent(ProductDetailActivity.this, CartActivity.class);
             startActivity(intent);
@@ -79,6 +79,8 @@ public class ProductDetailActivity extends AppCompatActivity {
         btnIncrease = findViewById(R.id.btnIncrease);
         btnDecrease = findViewById(R.id.btnDecrease);
         btnAddToCart = findViewById(R.id.btnAddToCart);
+        btnCart = findViewById(R.id.btnCart);
+        tvCartBadge = findViewById(R.id.tvCartBadge); // 🔹 Badge hiển thị số lượng
 
         recyclerViewVariant = findViewById(R.id.recyclerVariants);
         recyclerViewVariant.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
@@ -240,6 +242,34 @@ public class ProductDetailActivity extends AppCompatActivity {
         cartRef.child(cartId).setValue(cartItem)
                 .addOnSuccessListener(unused -> Toast.makeText(this, "Đã thêm vào giỏ hàng", Toast.LENGTH_SHORT).show())
                 .addOnFailureListener(e -> Toast.makeText(this, "Lỗi khi thêm vào giỏ hàng", Toast.LENGTH_SHORT).show());
+    }
+
+    // 🔹 Lấy số lượng item trong giỏ hàng để hiển thị badge
+    private void loadCartItemCount() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            tvCartBadge.setVisibility(View.GONE);
+            return;
+        }
+
+        DatabaseReference cartRef = FirebaseDatabase.getInstance().getReference("Cart").child(user.getUid());
+        cartRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                long count = snapshot.getChildrenCount();
+                if (count > 0) {
+                    tvCartBadge.setText(String.valueOf(count));
+                    tvCartBadge.setVisibility(View.VISIBLE);
+                } else {
+                    tvCartBadge.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                tvCartBadge.setVisibility(View.GONE);
+            }
+        });
     }
 
     public static Intent newIntent(Context context, Product product) {
