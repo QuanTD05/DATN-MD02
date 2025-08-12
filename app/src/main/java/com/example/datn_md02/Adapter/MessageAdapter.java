@@ -44,10 +44,12 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         if (viewType == TYPE_SENT) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_msg_sent_img, parent, false);
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_msg_sent_img, parent, false);
             return new SentViewHolder(view);
         } else {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_msg_received_img, parent, false);
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_msg_received_img, parent, false);
             return new ReceivedViewHolder(view);
         }
     }
@@ -57,51 +59,61 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         Message msg = messages.get(position);
         Context context = holder.itemView.getContext();
 
-        String content = msg.getDisplayContent();
-        boolean hasImage = msg.getImageUrl() != null && !msg.getImageUrl().trim().isEmpty();
-        boolean hasText = !TextUtils.isEmpty(content);
+        // Nội dung text để hiển thị
+        String content = safe(msg.getDisplayContent());
+        String rawContent = safe(msg.getContent());
+        String legacyImageUrl = safe(msg.getImageUrl());
+        boolean imageFlag = msg.getImage() != null && msg.getImage(); // cờ schema mới
+
+        // Quy tắc nhận dạng ảnh:
+        // 1) image == true
+        // 2) hoặc có imageUrl cũ
+        // 3) hoặc content là URL http(s)
+        boolean looksLikeUrl = rawContent.startsWith("http://") || rawContent.startsWith("https://");
+        boolean isImage = imageFlag || !TextUtils.isEmpty(legacyImageUrl) || looksLikeUrl;
+
+        // URL ảnh thực tế để load
+        String imageToLoad = !TextUtils.isEmpty(legacyImageUrl) ? legacyImageUrl
+                : (isImage ? rawContent : "");
 
         String timeText = formatTimestamp(msg.getTimestamp());
 
         if (holder instanceof SentViewHolder) {
             SentViewHolder h = (SentViewHolder) holder;
-            h.tvMsg.setVisibility(hasText ? View.VISIBLE : View.GONE);
-            h.tvMsg.setText(content);
-            h.tvTime.setText(timeText);
 
-            if (hasImage) {
+            if (isImage) {
                 h.imgMsg.setVisibility(View.VISIBLE);
+                h.tvMsg.setVisibility(View.GONE);
                 Glide.with(context)
-                        .load(msg.getImageUrl())
+                        .load(imageToLoad)
                         .placeholder(R.drawable.image_placeholder)
+                        .error(R.drawable.ic_chat)
                         .into(h.imgMsg);
             } else {
                 h.imgMsg.setVisibility(View.GONE);
+                h.tvMsg.setVisibility(View.VISIBLE);
+                h.tvMsg.setText(content);
             }
+            h.tvTime.setText(timeText);
 
         } else if (holder instanceof ReceivedViewHolder) {
             ReceivedViewHolder h = (ReceivedViewHolder) holder;
-            h.tvMsg.setVisibility(hasText ? View.VISIBLE : View.GONE);
-            h.tvMsg.setText(content);
-            h.tvTime.setText(timeText);
 
-            if (hasImage) {
+            if (isImage) {
                 h.imgMsg.setVisibility(View.VISIBLE);
+                h.tvMsg.setVisibility(View.GONE);
                 Glide.with(context)
-                        .load(msg.getImageUrl())
+                        .load(imageToLoad)
                         .placeholder(R.drawable.image_placeholder)
+                        .error(R.drawable.ic_chat)
                         .into(h.imgMsg);
             } else {
                 h.imgMsg.setVisibility(View.GONE);
+                h.tvMsg.setVisibility(View.VISIBLE);
+                h.tvMsg.setText(content);
             }
+            h.tvTime.setText(timeText);
         }
-    }
-
-    private String formatTimestamp(long timestamp) {
-        if (timestamp <= 0) return "";
-        Date date = new Date(timestamp);
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm dd/MM/yyyy", Locale.getDefault());
-        return sdf.format(date);
     }
 
     @Override
@@ -109,10 +121,10 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         return messages != null ? messages.size() : 0;
     }
 
+    // ===== ViewHolders =====
     static class SentViewHolder extends RecyclerView.ViewHolder {
         TextView tvMsg, tvTime;
         ImageView imgMsg;
-
         SentViewHolder(View v) {
             super(v);
             tvMsg = v.findViewById(R.id.tvMsgSent);
@@ -124,12 +136,23 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     static class ReceivedViewHolder extends RecyclerView.ViewHolder {
         TextView tvMsg, tvTime;
         ImageView imgMsg;
-
         ReceivedViewHolder(View v) {
             super(v);
             tvMsg = v.findViewById(R.id.tvMsgReceived);
             tvTime = v.findViewById(R.id.tvTimeReceived);
             imgMsg = v.findViewById(R.id.imgMsgReceived);
         }
+    }
+
+    // ===== Helpers =====
+    private static String safe(String s) {
+        return s == null ? "" : s;
+    }
+
+    private static String formatTimestamp(long timestamp) {
+        if (timestamp <= 0) return "";
+        Date date = new Date(timestamp);
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm dd/MM/yyyy", Locale.getDefault());
+        return sdf.format(date);
     }
 }

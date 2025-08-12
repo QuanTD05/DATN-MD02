@@ -8,8 +8,10 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.work.Constraints;
+import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.NetworkType;
 import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
@@ -21,6 +23,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class PollUnreadWorker extends Worker {
+    public static final String UNIQUE_NAME = "poll_unread_worker";
     private static final String TAG = "PollUnreadWorker";
 
     public PollUnreadWorker(@NonNull Context context, @NonNull WorkerParameters params) {
@@ -48,7 +51,7 @@ public class PollUnreadWorker extends Worker {
                     String sender = ds.child("sender").getValue(String.class);
                     Long ts = ds.child("timestamp").getValue(Long.class);
                     if (sender == null || ts == null) continue;
-                    if (ts >= nowMinus15m) newCount[0]++; // ước lượng mới
+                    if (ts >= nowMinus15m) newCount[0]++;
                 }
                 latch.countDown();
             }
@@ -72,13 +75,21 @@ public class PollUnreadWorker extends Worker {
         return Result.success();
     }
 
-    public static PeriodicWorkRequest buildPeriodicRequest() {
+    // === Helpers to schedule/cancel ===
+    public static void schedule(Context ctx) {
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
-        return new PeriodicWorkRequest.Builder(
-                PollUnreadWorker.class,
-                java.time.Duration.ofMinutes(15)
+        PeriodicWorkRequest req = new PeriodicWorkRequest.Builder(
+                PollUnreadWorker.class, 15, TimeUnit.MINUTES
         ).setConstraints(constraints).build();
+
+        WorkManager.getInstance(ctx).enqueueUniquePeriodicWork(
+                UNIQUE_NAME, ExistingPeriodicWorkPolicy.UPDATE, req
+        );
+    }
+
+    public static void cancel(Context ctx) {
+        WorkManager.getInstance(ctx).cancelUniqueWork(UNIQUE_NAME);
     }
 }

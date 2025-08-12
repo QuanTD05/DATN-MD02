@@ -1,7 +1,9 @@
 package com.example.datn_md02.Fragment;
 
 import android.os.Bundle;
-import android.view.*;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -16,13 +18,25 @@ import com.example.datn_md02.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class OrderNotificationFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private NotificationAdapter adapter;
     private final List<NotificationItem> orderList = new ArrayList<>();
+    private ValueEventListener listener;
+
+    private OnNotificationCountChangeListener countListener;
+    private int tabPosition = 1; // Tab Đơn hàng
+
+    public static OrderNotificationFragment newInstance(OnNotificationCountChangeListener listener) {
+        OrderNotificationFragment fragment = new OrderNotificationFragment();
+        fragment.countListener = listener;
+        return fragment;
+    }
 
     @Nullable
     @Override
@@ -38,40 +52,58 @@ public class OrderNotificationFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (listener != null) {
+            FirebaseDatabase.getInstance().getReference("notifications").removeEventListener(listener);
+        }
+    }
+
     private void loadOrders() {
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("notifications").child(userId);
-        ref.orderByChild("timestamp").addValueEventListener(new ValueEventListener() {
+        DatabaseReference root = FirebaseDatabase.getInstance().getReference("notifications");
+        String uid = FirebaseAuth.getInstance().getUid();
+
+        listener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 orderList.clear();
+
                 for (DataSnapshot child : snapshot.getChildren()) {
-                    NotificationItem item = child.getValue(NotificationItem.class);
-                    if (item != null && "order".equals(item.type)) {
-                        orderList.add(item);
+                    if (uid != null && uid.equals(child.getKey())) {
+                        for (DataSnapshot n : child.getChildren()) {
+                            NotificationItem item = n.getValue(NotificationItem.class);
+                            if (item != null && isOrderNotification(item)) {
+                                orderList.add(item);
+                            }
+                        }
                     }
                 }
-                Collections.reverse(orderList);
-                // ✅ Sắp xếp theo timestamp giảm dần (mới nhất lên đầu)
-                orderList.sort((a, b) -> {
-                    long tsA = 0;
-                    long tsB = 0;
-                    try {
-                        tsA = (a.getTimestamp() instanceof Long) ? (Long) a.getTimestamp() : 0L;
-                        tsB = (b.getTimestamp() instanceof Long) ? (Long) b.getTimestamp() : 0L;
-                    } catch (Exception e) {
-                        // log nếu cần
-                    }
-                    return Long.compare(tsB, tsA); // mới nhất lên đầu
-                });
 
+                Collections.reverse(orderList);
                 adapter.notifyDataSetChanged();
+
+                if (countListener != null) {
+                    countListener.onCountChanged(tabPosition, orderList.size());
+                }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(getContext(), "Lỗi tải đơn hàng", Toast.LENGTH_SHORT).show();
+                if (getContext() != null) {
+                    Toast.makeText(getContext(), "Lỗi tải thông báo đơn hàng", Toast.LENGTH_SHORT).show();
+                }
             }
-        });
+        };
+
+        root.addValueEventListener(listener);
+    }
+
+    private boolean isOrderNotification(NotificationItem item) {
+        if (item.type != null) {
+            String t = item.type.toLowerCase();
+            return t.contains("order") || t.contains("đơn hàng");
+        }
+        return false;
     }
 }

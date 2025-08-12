@@ -112,7 +112,7 @@
             android:layout_width="match_parent"
             android:layout_height="180dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/hehe" />
+            android:src="@drawable/logo33" />
 
         <!-- Danh mục -->
         <!-- Đồ Nội Thất + Tất cả -->

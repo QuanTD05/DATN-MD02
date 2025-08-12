@@ -1,6 +1,7 @@
 package com.example.datn_md02.Fragment;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -28,10 +29,11 @@ import com.pusher.pushnotifications.PushNotifications;
 public class ProfileFragment extends Fragment {
 
     private TextView tvName, tvEmail;
-    private ImageView btnLogout, imgAvatar, btnBack;
+    private ImageView btnLogout, imgAvatar;
     private FirebaseAuth auth;
     private FirebaseUser firebaseUser;
     private DatabaseReference userRef;
+    private ValueEventListener userListener;
 
     @Nullable
     @Override
@@ -41,12 +43,10 @@ public class ProfileFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
-        // Ánh xạ View
         tvName = view.findViewById(R.id.tvName);
         tvEmail = view.findViewById(R.id.tvEmail);
         btnLogout = view.findViewById(R.id.btnLogout);
-        imgAvatar = view.findViewById(R.id.imgAvatar); // Thêm avatar
-
+        imgAvatar = view.findViewById(R.id.imgAvatar);
 
         auth = FirebaseAuth.getInstance();
         firebaseUser = auth.getCurrentUser();
@@ -56,17 +56,16 @@ public class ProfileFragment extends Fragment {
             tvEmail.setText(firebaseUser.getEmail());
 
             userRef = FirebaseDatabase.getInstance().getReference("users").child(uid);
-            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            userListener = new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    // Kiểm tra fragment đã attach chưa
+                    if (!isAdded()) return;
+
                     String fullName = snapshot.child("fullName").getValue(String.class);
                     String imageUrl = snapshot.child("avatar").getValue(String.class);
 
-                    if (fullName != null && !fullName.isEmpty()) {
-                        tvName.setText(fullName);
-                    } else {
-                        tvName.setText("Người dùng");
-                    }
+                    tvName.setText((fullName != null && !fullName.isEmpty()) ? fullName : "Người dùng");
 
                     if (imageUrl != null && !imageUrl.isEmpty()) {
                         Glide.with(requireContext())
@@ -74,32 +73,34 @@ public class ProfileFragment extends Fragment {
                                 .placeholder(R.drawable.ic_user)
                                 .circleCrop()
                                 .into(imgAvatar);
+                    } else {
+                        imgAvatar.setImageResource(R.drawable.ic_user);
                     }
                 }
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
+                    if (!isAdded()) return;
                     tvName.setText("Không thể tải tên");
                     Log.e("ProfileFragment", "Lỗi khi tải tên người dùng: " + error.getMessage());
                 }
-            });
+            };
+            userRef.addListenerForSingleValueEvent(userListener);
         }
 
-        // Nút Logout
         btnLogout.setOnClickListener(v -> {
-            new AlertDialog.Builder(requireContext())
+            Context ctx = getContext();
+            if (ctx == null) return;
+
+            new AlertDialog.Builder(ctx)
                     .setTitle("Đăng xuất")
                     .setMessage("Bạn có chắc chắn muốn đăng xuất không?")
                     .setPositiveButton("Đăng xuất", (dialog, which) -> {
-                        // 1) Clear tất cả interests trên Pusher Beams
                         PushNotifications.clearDeviceInterests();
-
-                        // 2) Sign out Firebase
                         FirebaseAuth.getInstance().signOut();
-                        Toast.makeText(getContext(), "Đã đăng xuất", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ctx, "Đã đăng xuất", Toast.LENGTH_SHORT).show();
 
-                        // 3) Chuyển về StartActivity, xoá hết back stack
-                        Intent intent = new Intent(getContext(), StartActivity.class);
+                        Intent intent = new Intent(ctx, StartActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);
                     })
@@ -107,60 +108,32 @@ public class ProfileFragment extends Fragment {
                     .show();
         });
 
-
-
-        // Chuyển đến MyReviewFragment
-        LinearLayout layoutReview = view.findViewById(R.id.layoutReview);
-        layoutReview.setOnClickListener(v -> {
-            FragmentTransaction transaction = requireActivity()
-                    .getSupportFragmentManager()
-                    .beginTransaction();
-            transaction.replace(R.id.main_content, new MyReviewFragment());
-            transaction.addToBackStack(null);
-            transaction.commit();
-        });
-
-        // Chuyển đến ShippingAddressFragment
-        LinearLayout layoutShippingAddress = view.findViewById(R.id.layoutShippingAddress);
-        layoutShippingAddress.setOnClickListener(v -> {
-            FragmentTransaction transaction = requireActivity()
-                    .getSupportFragmentManager()
-                    .beginTransaction();
-            transaction.replace(R.id.main_content, new ShippingAddressFragment());
-            transaction.addToBackStack(null);
-            transaction.commit();
-        });
-
-        // Chuyển đến BankAccountFragment
-        LinearLayout layoutBankAccount = view.findViewById(R.id.layoutBankAccount);
-        layoutBankAccount.setOnClickListener(v -> {
-            FragmentTransaction transaction = requireActivity()
-                    .getSupportFragmentManager()
-                    .beginTransaction();
-            transaction.replace(R.id.main_content, new BankAccountFragment());
-            transaction.addToBackStack(null);
-            transaction.commit();
-        });
-        // Chuyển đến BankAccountFragment
-        LinearLayout Oderhistoryt = view.findViewById(R.id.Oderhistory);
-        Oderhistoryt.setOnClickListener(v -> {
-            FragmentTransaction transaction = requireActivity()
-                    .getSupportFragmentManager()
-                    .beginTransaction();
-            transaction.replace(R.id.main_content, new OrderHistoryFragment());
-            transaction.addToBackStack(null);
-            transaction.commit();
-        });
-
-        // Chuyển đến UserSettingsFragment
-        LinearLayout layoutSettings = view.findViewById(R.id.layoutSettings);
-        layoutSettings.setOnClickListener(v -> {
-            FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
-            transaction.replace(R.id.main_content, new UserSettingsFragment());
-            transaction.addToBackStack(null);
-            transaction.commit();
-        });
+        setClickNavigation(view, R.id.layoutReview, new MyReviewFragment());
+        setClickNavigation(view, R.id.layoutShippingAddress, new ShippingAddressFragment());
+        setClickNavigation(view, R.id.layoutBankAccount, new BankAccountFragment());
+        setClickNavigation(view, R.id.Oderhistory, new OrderHistoryFragment());
+        setClickNavigation(view, R.id.layoutSettings, new UserSettingsFragment());
 
         return view;
+    }
+
+    private void setClickNavigation(View parent, int layoutId, Fragment fragment) {
+        LinearLayout layout = parent.findViewById(layoutId);
+        layout.setOnClickListener(v -> {
+            if (!isAdded()) return;
+            FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
+            transaction.replace(R.id.main_content, fragment);
+            transaction.addToBackStack(null);
+            transaction.commit();
+        });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Remove listener để tránh callback sau khi fragment bị hủy
+        if (userRef != null && userListener != null) {
+            userRef.removeEventListener(userListener);
+        }
     }
 }

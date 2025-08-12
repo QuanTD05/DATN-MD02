@@ -5,9 +5,20 @@ import java.util.Date;
 import java.util.Locale;
 
 public class NotificationItem {
+    public String id;        // id của thông báo (để update read status)
     public String title;
     public String message;
     public Object timestamp;
+    public String type = "order"; // mặc định là order
+    public boolean read = false;  // trạng thái đã đọc/chưa đọc
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getTitle() {
         return title;
@@ -41,7 +52,13 @@ public class NotificationItem {
         this.type = type;
     }
 
-    public String type = "order"; // mặc định là "order" nếu không set
+    public boolean isRead() {
+        return read;
+    }
+
+    public void setRead(boolean read) {
+        this.read = read;
+    }
 
     public NotificationItem() {}
 
@@ -49,14 +66,12 @@ public class NotificationItem {
         this.title = title;
         this.message = message;
         this.timestamp = timestamp;
-        // không set type để giữ mặc định là "order"
     }
 
     public NotificationItem(long millis, String message) {
         this.title = "🛒 Đặt hàng thành công";
         this.message = message;
-        this.timestamp = millis; // giữ dạng Long
-        // type vẫn mặc định là "order"
+        this.timestamp = millis;
     }
 
     public String getFormattedTime() {

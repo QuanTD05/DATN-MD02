@@ -18,13 +18,22 @@ import com.example.datn_md02.Model.Message;
 import com.example.datn_md02.Model.User;
 import com.example.datn_md02.R;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.*;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class ContactFragment extends Fragment {
+
+    public interface OnMessageUnreadCountListener {
+        void onUnreadMessages(int count);
+    }
+
     private RecyclerView rvStaff;
     private StaffAdapter adapter;
     private final List<User> staffList = new ArrayList<>();
@@ -33,13 +42,19 @@ public class ContactFragment extends Fragment {
 
     private DatabaseReference usersRef, chatsRef;
     private DataSnapshot lastChatSnapshot = null;
+    private OnMessageUnreadCountListener unreadListener;
+
+    public static ContactFragment newInstance(OnMessageUnreadCountListener listener) {
+        ContactFragment f = new ContactFragment();
+        f.unreadListener = listener;
+        return f;
+    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_contact,
-                container, false);
+        View view = inflater.inflate(R.layout.fragment_contact, container, false);
 
         rvStaff = view.findViewById(R.id.rvStaff);
         rvStaff.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -56,8 +71,7 @@ public class ContactFragment extends Fragment {
                 updateWithChatData(snap);
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {
-                Log.e("ContactFragment",
-                        "Chat listener failed", e.toException());
+                Log.e("ContactFragment", "Chat listener failed", e.toException());
             }
         });
 
@@ -73,6 +87,7 @@ public class ContactFragment extends Fragment {
                             User u = ds.getValue(User.class);
                             if (u == null) continue;
                             if (u.getEmail().equalsIgnoreCase(currentEmail)) continue;
+
                             // init fields
                             u.setLastMessageText("Chưa có tin nhắn");
                             u.setLastMessageTimestamp(0);
@@ -103,13 +118,13 @@ public class ContactFragment extends Fragment {
                         }
                     }
                     @Override public void onCancelled(@NonNull DatabaseError e) {
-                        Log.e("ContactFragment",
-                                "Users load failed", e.toException());
+                        Log.e("ContactFragment", "Users load failed", e.toException());
                     }
                 });
     }
 
     private void updateWithChatData(DataSnapshot snap) {
+        int totalUnread = 0;
         for (User u : staffList) {
             long lastTs = 0;
             int unread = 0;
@@ -143,7 +158,14 @@ public class ContactFragment extends Fragment {
                         ? "Bạn: " : "";
                 u.setLastMessageText(prefix + lastMsg.getContent());
             }
+            totalUnread += unread;
         }
+
+        // Gửi số lượng tin nhắn chưa đọc về UserActivity
+        if (unreadListener != null) {
+            unreadListener.onUnreadMessages(totalUnread);
+        }
+
         Collections.sort(staffList, (a,b) ->
                 Long.compare(b.getLastMessageTimestamp(),
                         a.getLastMessageTimestamp()));
@@ -151,11 +173,34 @@ public class ContactFragment extends Fragment {
     }
 
     private void openChat(User u) {
-        Intent it = new Intent(getContext(), ChatActivity.class);
-        it.putExtra("partner_email",  u.getEmail());
-        it.putExtra("partner_name",   u.getFullName());
-        it.putExtra("partner_avatar", u.getAvatar());
-        startActivity(it);
+        // Đánh dấu tất cả tin nhắn từ u -> mình là đã đọc trước khi mở chat
+        chatsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot c : snapshot.getChildren()) {
+                    Message m = c.getValue(Message.class);
+                    if (m == null) continue;
+
+                    boolean isFromUserToMe = m.getSender().equalsIgnoreCase(u.getEmail())
+                            && m.getReceiver().equalsIgnoreCase(currentEmail)
+                            && !m.isSeen();
+
+                    if (isFromUserToMe) {
+                        c.getRef().child("seen").setValue(true);
+                    }
+                }
+
+                // Sau khi đánh dấu xong thì mở ChatActivity
+                Intent it = new Intent(getContext(), ChatActivity.class);
+                it.putExtra("partner_email",  u.getEmail());
+                it.putExtra("partner_name",   u.getFullName());
+                it.putExtra("partner_avatar", u.getAvatar());
+                startActivity(it);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
     }
 
     private String sanitizeEmail(String email) {

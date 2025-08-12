@@ -1,6 +1,8 @@
 package com.example.datn_md02.Adapter;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,15 +10,15 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.datn_md02.Model.NotificationItem;
 import com.example.datn_md02.R;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.FirebaseDatabase;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.NotiViewHolder> {
 
@@ -40,30 +42,55 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         NotificationItem item = list.get(position);
         holder.tvTitle.setText(item.title);
         holder.tvMessage.setText(item.message);
+        holder.tvTime.setText(item.getFormattedTime());
 
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
-            Date date = sdf.parse(item.getFormattedTime());
-            SimpleDateFormat output = new SimpleDateFormat("HH:mm dd-MM-yy", Locale.getDefault());
-            holder.tvTime.setText(output.format(date));
-        } catch (Exception e) {
-            holder.tvTime.setText(item.getFormattedTime());
+        // Hiển thị khác cho chưa đọc
+        if (!item.read) {
+            holder.tvTitle.setTypeface(null, Typeface.BOLD);
+            holder.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.blue_light));
+        } else {
+            holder.tvTitle.setTypeface(null, Typeface.NORMAL);
+            holder.itemView.setBackgroundColor(Color.TRANSPARENT);
         }
 
+        // Icon loại thông báo
         if (item.type == null) {
             holder.imgIcon.setImageResource(R.drawable.ic_notification);
         } else {
             switch (item.type) {
+                case "promo":
                 case "promotions":
                     holder.imgIcon.setImageResource(R.drawable.ic_promo);
                     break;
+                case "order":
                 case "orders":
                     holder.imgIcon.setImageResource(R.drawable.ic_order);
                     break;
                 default:
-                    holder.imgIcon.setImageResource(R.drawable.ic_order);
+                    holder.imgIcon.setImageResource(R.drawable.ic_notification);
                     break;
             }
+        }
+
+        // Click => đánh dấu đã đọc
+        holder.itemView.setOnClickListener(v -> {
+            if (!item.read) {
+                markAsRead(item);
+                item.read = true;
+                notifyItemChanged(position);
+            }
+        });
+    }
+
+    private void markAsRead(NotificationItem item) {
+        String uid = FirebaseAuth.getInstance().getUid();
+        if (uid != null && item.id != null) {
+            FirebaseDatabase.getInstance()
+                    .getReference("user_notifications")
+                    .child(uid)
+                    .child(item.id)
+                    .child("read")
+                    .setValue(true);
         }
     }
 

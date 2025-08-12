@@ -17,13 +17,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.datn_md02.Adapter.CartOrderAdapter;
 import com.example.datn_md02.Api.CreateOrder;
 import com.example.datn_md02.Constant.AppInfo;
 import com.example.datn_md02.Model.Cart;
 import com.example.datn_md02.Model.CartItem;
 import com.example.datn_md02.Model.NotificationItem;
 import com.example.datn_md02.Model.Order;
-import com.example.datn_md02.Adapter.CartOrderAdapter;
+import com.example.datn_md02.Model.Promotion;     // <- dùng cho tính khuyến mãi
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -37,8 +38,10 @@ import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;     // <- thêm
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;        // <- thêm
 
 import vn.zalopay.sdk.Environment;
 import vn.zalopay.sdk.ZaloPayError;
@@ -98,18 +101,6 @@ public class PayActivity extends AppCompatActivity {
         rbZaloPay        = findViewById(R.id.rbZaloPay);
         btnCheckout      = findViewById(R.id.btnCheckout);
 
-        // Áp mã khuyến mãi
-        tvCoupon.setOnClickListener(v -> {
-            PromotionDialog dialog = new PromotionDialog(this, promotion -> {
-                appliedCouponCode = promotion.getCode();
-                discount = subtotal * promotion.getDiscount() / 100.0;
-                tvCoupon.setText("Áp dụng: " + promotion.getCode() + " (-" + promotion.getDiscount() + "%)");
-                updateTotalUI();
-                Toast.makeText(this, "Đã áp dụng mã " + promotion.getCode(), Toast.LENGTH_SHORT).show();
-            });
-            dialog.show();
-        });
-
         // Lấy giỏ hàng từ Intent
         cartItems = (ArrayList<Cart>) getIntent().getSerializableExtra("cartItems");
         if (cartItems == null) cartItems = new ArrayList<>();
@@ -121,6 +112,26 @@ public class PayActivity extends AppCompatActivity {
         loadDefaultAddress();
         loadDefaultBankCard();
         updateTotalUI();
+
+        // Áp mã khuyến mãi (lọc theo sản phẩm trong giỏ + chỉ giảm trên item đủ điều kiện)
+        tvCoupon.setOnClickListener(v -> {
+            Set<String> productIdsTrongGio = buildProductIdSetFromCart();
+
+            // Dùng PromotionDialog phiên bản nhận productIds để lọc danh sách hiển thị
+            PromotionDialog dialog = new PromotionDialog(this, productIdsTrongGio, promotion -> {
+                appliedCouponCode = promotion.getCode();
+
+                // Tính giảm giá chỉ trên các item hợp lệ với promotion
+                discount = computeDiscountForPromotion(promotion);
+
+                // Cập nhật UI
+                double percent = promotion.getDiscount(); // % theo model hiện tại của bạn
+                tvCoupon.setText("Áp dụng: " + promotion.getCode() + " (-" + (percent) + "%)");
+                updateTotalUI();
+                Toast.makeText(this, "Đã áp dụng mã " + promotion.getCode(), Toast.LENGTH_SHORT).show();
+            });
+            dialog.show();
+        });
 
         btnCheckout.setOnClickListener(v -> {
             if (!rbCOD.isChecked() && !rbCard.isChecked() && !rbZaloPay.isChecked()) {
@@ -175,6 +186,37 @@ public class PayActivity extends AppCompatActivity {
         });
     }
 
+    // ====== Khuyến mãi theo sản phẩm: helper ======
+
+    private Set<String> buildProductIdSetFromCart() {
+        Set<String> ids = new HashSet<>();
+        for (Cart c : cartItems) {
+            if (c.getProductId() != null) ids.add(c.getProductId());
+        }
+        return ids;
+    }
+
+    /** Tính giảm giá chỉ trên các item thỏa điều kiện của promotion */
+    private double computeDiscountForPromotion(Promotion promotion) {
+        boolean applyAll = promotion.isApply_to_all();
+        List<String> allowIds = promotion.getApply_to_product_ids();
+
+        double eligibleSubtotal = 0;
+        for (Cart c : cartItems) {
+            boolean ok = applyAll;
+            if (!applyAll) {
+                ok = (allowIds != null && allowIds.contains(c.getProductId()));
+            }
+            if (ok) {
+                eligibleSubtotal += c.getPrice() * c.getQuantity();
+            }
+        }
+
+        double percent = promotion.getDiscount(); // theo model hiện tại
+        return eligibleSubtotal * (percent / 100.0);
+    }
+
+    // ==============================================
 
     private void updateTotalUI() {
         // Định dạng số với dấu phân nhóm theo chuẩn Việt Nam
@@ -187,8 +229,6 @@ public class PayActivity extends AppCompatActivity {
         double total = subtotal + shippingFee - discount;
         tvTotal.setText("Tổng thanh toán: " + nf.format(total) + " VND");
     }
-
-
 
     private void showZaloPayDialog(String token, String amount) {
         new AlertDialog.Builder(this)

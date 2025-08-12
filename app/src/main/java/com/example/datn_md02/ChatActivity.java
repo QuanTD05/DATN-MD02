@@ -1,15 +1,17 @@
+// File: app/src/main/java/com/example/datn_md02/ChatActivity.java
 package com.example.datn_md02;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.content.Intent;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -132,7 +134,7 @@ public class ChatActivity extends AppCompatActivity {
         rv.setLayoutManager(lm);
         rv.setAdapter(adapter);
 
-        // Load messages (đọc snapshot trực tiếp, không phụ thuộc model DB)
+        // Load messages
         chatsRef.addValueEventListener(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 msgs.clear();
@@ -155,7 +157,7 @@ public class ChatActivity extends AppCompatActivity {
                             : new Message(s, r, c, ts);
                     msgs.add(m);
 
-                    // Khi đang ở ChatActivity vẫn hiện local notify (giống admin)
+                    // Local notify khi nhận tin mới
                     if (!s.equalsIgnoreCase(meEmail) && ts > lastTs) {
                         String shown = Boolean.TRUE.equals(im) ? "[Hình ảnh]" : (c != null ? c : "");
                         sendLocalNotification(s, shown);
@@ -170,7 +172,7 @@ public class ChatActivity extends AppCompatActivity {
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
 
-        // Send text (ghi DB theo schema chung với admin)
+        // Gửi text
         btnSend.setOnClickListener(v -> {
             if (meEmail == null || TextUtils.isEmpty(partnerEmail)) return;
             String txt = etMessage.getText().toString().trim();
@@ -188,26 +190,43 @@ public class ChatActivity extends AppCompatActivity {
             etMessage.setText("");
         });
 
-        // Pick/send image
+        // Chọn & gửi ảnh (GIỐNG ADMIN: có dialog xác nhận)
         pickImage = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
                 uri -> {
-                    if (uri == null || meEmail == null || TextUtils.isEmpty(partnerEmail)) return;
-                    StorageReference ref = storage.getReference("chat_images/" + UUID.randomUUID());
-                    ref.putFile(uri).addOnSuccessListener(t -> ref.getDownloadUrl()
-                            .addOnSuccessListener(url -> {
-                                long ts = System.currentTimeMillis();
-                                HashMap<String, Object> m = new HashMap<>();
-                                m.put("sender", meEmail);
-                                m.put("receiver", partnerEmail);
-                                m.put("content", url.toString()); // link ảnh
-                                m.put("timestamp", ts);
-                                m.put("image", true);
-                                chatsRef.push().setValue(m);
-                            }));
+                    if (uri == null) return;
+                    new AlertDialog.Builder(this)
+                            .setTitle("Gửi ảnh")
+                            .setMessage("Bạn có muốn gửi ảnh này không?")
+                            .setPositiveButton("Gửi", (d, w) -> uploadImage(uri))
+                            .setNegativeButton("Hủy", null)
+                            .show();
                 }
         );
         btnImage.setOnClickListener(v -> pickImage.launch("image/*"));
+    }
+
+    // Upload ảnh lên Storage -> lấy URL -> push vào chats (y hệt admin)
+    private void uploadImage(Uri uri) {
+        if (meEmail == null || TextUtils.isEmpty(partnerEmail)) return;
+
+        StorageReference ref = storage.getReference("chat_images/" + UUID.randomUUID());
+        ref.putFile(uri)
+                .addOnSuccessListener(task -> ref.getDownloadUrl()
+                        .addOnSuccessListener(url -> {
+                            long ts = System.currentTimeMillis();
+                            HashMap<String, Object> m = new HashMap<>();
+                            m.put("sender",    meEmail);
+                            m.put("receiver",  partnerEmail);
+                            m.put("content",   url.toString()); // URL ảnh
+                            m.put("image",     true);           // cờ ảnh = true
+                            m.put("timestamp", ts);
+                            chatsRef.push().setValue(m);
+                        })
+                )
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Gửi ảnh thất bại", Toast.LENGTH_SHORT).show()
+                );
     }
 
     // Deep link
