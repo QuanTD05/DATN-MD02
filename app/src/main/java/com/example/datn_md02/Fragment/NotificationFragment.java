@@ -1,9 +1,12 @@
 package com.example.datn_md02.Fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -12,12 +15,17 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.example.datn_md02.Cart.CartActivity;
 import com.example.datn_md02.R;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class NotificationFragment extends Fragment implements OnNotificationCountChangeListener {
 
@@ -25,6 +33,7 @@ public class NotificationFragment extends Fragment implements OnNotificationCoun
     private ViewPager2 viewPager;
     private int promoCount = 0;
     private int orderCount = 0;
+    private TextView tvCartBadge;
 
     @Nullable
     @Override
@@ -33,11 +42,23 @@ public class NotificationFragment extends Fragment implements OnNotificationCoun
                              @Nullable Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_notification, container, false);
+
+        // Bind views
         tabLayout = view.findViewById(R.id.tabLayoutNoti);
         viewPager = view.findViewById(R.id.viewPagerNoti);
+        tvCartBadge = view.findViewById(R.id.tvCartBadge);
 
+        // Setup adapter
         viewPager.setAdapter(new NotificationPagerAdapter(requireActivity(), this));
 
+        // Cart icon click
+        ImageView ivCart = view.findViewById(R.id.ivCartIcon);
+        ivCart.setOnClickListener(v -> {
+            Intent intent = new Intent(getContext(), CartActivity.class);
+            startActivity(intent);
+        });
+
+        // Tab titles
         new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
             if (position == 0) {
                 tab.setText(getPromoTabTitle());
@@ -46,8 +67,11 @@ public class NotificationFragment extends Fragment implements OnNotificationCoun
             }
         }).attach();
 
-        // Khi mở màn hình thông báo → đánh dấu tất cả là đã đọc
+        // Mark all notifications as read
         markAllNotificationsAsRead();
+
+        // Load cart count
+        loadCartCount();
 
         return view;
     }
@@ -78,10 +102,12 @@ public class NotificationFragment extends Fragment implements OnNotificationCoun
     }
 
     private void markAllNotificationsAsRead() {
-        String uid = FirebaseAuth.getInstance().getUid();
-        if (uid == null) return;
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
 
-        // Mark read cho thông báo cá nhân
+        String uid = user.getUid();
+
+        // Mark read for personal notifications
         FirebaseDatabase.getInstance()
                 .getReference("notifications")
                 .child(uid)
@@ -92,7 +118,7 @@ public class NotificationFragment extends Fragment implements OnNotificationCoun
                     }
                 });
 
-        // Mark read cho thông báo broadcast
+        // Mark read for broadcast notifications
         FirebaseDatabase.getInstance()
                 .getReference("notifications")
                 .get()
@@ -106,6 +132,33 @@ public class NotificationFragment extends Fragment implements OnNotificationCoun
                         }
                     }
                 });
+    }
+
+    private void loadCartCount() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) return;
+
+        String userId = currentUser.getUid();
+        DatabaseReference cartRef = FirebaseDatabase.getInstance().getReference("Cart").child(userId);
+
+        cartRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int itemCount = (int) snapshot.getChildrenCount(); // count distinct items
+
+                if (itemCount > 0) {
+                    tvCartBadge.setVisibility(View.VISIBLE);
+                    tvCartBadge.setText(String.valueOf(itemCount));
+                } else {
+                    tvCartBadge.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Handle error if needed
+            }
+        });
     }
 
     private static class NotificationPagerAdapter extends FragmentStateAdapter {

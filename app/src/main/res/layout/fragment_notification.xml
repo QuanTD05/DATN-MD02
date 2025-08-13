@@ -5,6 +5,7 @@
     android:orientation="vertical"
     android:background="#F8F8F8">
 
+    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -23,30 +24,53 @@
             android:textStyle="bold"
             android:textColor="#000" />
 
-        <!-- View chiếm khoảng trống ở giữa -->
+        <!-- Khoảng trống -->
         <View
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <!-- Icon giỏ hàng bên phải -->
-        <ImageView
-            android:id="@+id/ivCartIcon"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_cart"
-            android:contentDescription="Giỏ hàng" />
+        <!-- Giỏ hàng -->
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <!-- Icon giỏ hàng nhỏ hơn -->
+            <ImageView
+                android:id="@+id/ivCartIcon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_cart"
+                android:contentDescription="Giỏ hàng" />
+
+            <!-- Badge thông báo vừa khung -->
+            <TextView
+                android:id="@+id/tvCartBadge"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_gravity="top|end"
+                android:translationX="5dp"
+                android:translationY="-5dp"
+                android:gravity="center"
+                android:text="50"
+                android:textSize="9sp"
+                android:textStyle="bold"
+                android:background="@drawable/bg_edittext"
+                android:textColor="#E64A19" />
+        </FrameLayout>
     </LinearLayout>
 
-
+    <!-- TabLayout có contentDescription -->
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayoutNoti"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:color/white"
+        android:background="@color/gray_light"
         android:elevation="4dp"
+        android:contentDescription="Thanh chuyển tab thông báo"
         android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar" />
 
+    <!-- ViewPager -->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPagerNoti"
         android:layout_width="match_parent"

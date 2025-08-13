@@ -69,13 +69,11 @@ public class OrderNotificationFragment extends Fragment {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 orderList.clear();
 
-                for (DataSnapshot child : snapshot.getChildren()) {
-                    if (uid != null && uid.equals(child.getKey())) {
-                        for (DataSnapshot n : child.getChildren()) {
-                            NotificationItem item = n.getValue(NotificationItem.class);
-                            if (item != null && isOrderNotification(item)) {
-                                orderList.add(item);
-                            }
+                if (uid != null && snapshot.hasChild(uid)) {
+                    for (DataSnapshot n : snapshot.child(uid).getChildren()) {
+                        NotificationItem item = n.getValue(NotificationItem.class);
+                        if (item != null && isOrderNotification(item)) {
+                            orderList.add(item);
                         }
                     }
                 }

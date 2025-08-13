@@ -60,11 +60,11 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             switch (item.type) {
                 case "promo":
                 case "promotions":
-                    holder.imgIcon.setImageResource(R.drawable.ic_promo);
+                    holder.imgIcon.setImageResource(R.drawable.icon_khuyenmai);
                     break;
                 case "order":
                 case "orders":
-                    holder.imgIcon.setImageResource(R.drawable.ic_order);
+                    holder.imgIcon.setImageResource(R.drawable.ic_donhang);
                     break;
                 default:
                     holder.imgIcon.setImageResource(R.drawable.ic_notification);
