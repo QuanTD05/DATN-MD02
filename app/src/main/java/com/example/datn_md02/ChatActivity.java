@@ -1,4 +1,3 @@
-// File: app/src/main/java/com/example/datn_md02/ChatActivity.java
 package com.example.datn_md02;
 
 import android.Manifest;
@@ -53,7 +52,7 @@ public class ChatActivity extends AppCompatActivity {
     private static final String KEY_LAST_TS = "last_ts";
     private long lastTs = 0L;
 
-    private ImageView ivChatAvatar;
+    private ImageView ivChatAvatar, btnBack;
     private TextView tvChatTitle;
     private RecyclerView rv;
     private EditText etMessage;
@@ -63,8 +62,8 @@ public class ChatActivity extends AppCompatActivity {
     private MessageAdapter adapter;
     private final List<Message> msgs = new ArrayList<>();
 
-    private String meEmail, partnerEmail, partnerName, partnerAvatar;
-    private DatabaseReference chatsRef, statusMeRef, statusPartnerRef;
+    private String meEmail, partnerEmail, partnerName, partnerAvatar, meUid;
+    private DatabaseReference chatsRef, statusMeRef;
     private FirebaseStorage storage;
     private ActivityResultLauncher<String> pickImage;
 
@@ -73,7 +72,6 @@ public class ChatActivity extends AppCompatActivity {
         super.onCreate(s);
         setContentView(R.layout.activity_chat);
 
-        // Channel + permission (Android 13+)
         createNotificationChannel();
         requestNotificationPermission();
 
@@ -85,16 +83,19 @@ public class ChatActivity extends AppCompatActivity {
         etMessage    = findViewById(R.id.etMessage);
         btnSend      = findViewById(R.id.btnSend);
         btnImage     = findViewById(R.id.btnSelectImage);
+        btnBack      = findViewById(R.id.btnBack);
 
-        meEmail = FirebaseAuth.getInstance().getCurrentUser() != null
-                ? FirebaseAuth.getInstance().getCurrentUser().getEmail() : null;
+        btnBack.setOnClickListener(v -> finish());
 
-        // Intent truyền vào
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            meEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+            meUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        }
+
         partnerEmail  = getIntent().getStringExtra("partner_email");
         partnerName   = getIntent().getStringExtra("partner_name");
         partnerAvatar = getIntent().getStringExtra("partner_avatar");
 
-        // Deep link (nếu mở từ notification)
         handleDeepLink(getIntent());
 
         if (TextUtils.isEmpty(partnerEmail)) {
@@ -106,7 +107,6 @@ public class ChatActivity extends AppCompatActivity {
         chatsRef = FirebaseDatabase.getInstance().getReference("chats");
         storage  = FirebaseStorage.getInstance();
 
-        // Header
         tvChatTitle.setText(!TextUtils.isEmpty(partnerName) ? partnerName : partnerEmail);
         Glide.with(this)
                 .load(partnerAvatar)
@@ -114,27 +114,28 @@ public class ChatActivity extends AppCompatActivity {
                 .circleCrop()
                 .into(ivChatAvatar);
 
-        // Presence partner
-        statusPartnerRef = FirebaseDatabase.getInstance()
-                .getReference("status")
-                .child(sanitizeEmail(partnerEmail));
-        statusPartnerRef.addValueEventListener(new ValueEventListener() {
-            @Override public void onDataChange(@NonNull DataSnapshot snap) {
-                Boolean on = snap.getValue(Boolean.class);
-                String title = !TextUtils.isEmpty(partnerName) ? partnerName : partnerEmail;
-                tvChatTitle.setText(title + (on != null && on ? " (Online)" : " (Offline)"));
-            }
-            @Override public void onCancelled(@NonNull DatabaseError e) {}
-        });
+        // 🔹 Lấy trạng thái online từ users
+        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
+        usersRef.orderByChild("email").equalTo(partnerEmail)
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        for (DataSnapshot userSnap : snapshot.getChildren()) {
+                            Boolean on = userSnap.child("status").getValue(Boolean.class);
+                            String title = !TextUtils.isEmpty(partnerName) ? partnerName : partnerEmail;
+                            tvChatTitle.setText(title + (on != null && on ? " (Online)" : " (Offline)"));
+                            break;
+                        }
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError e) {}
+                });
 
-        // Recycler + adapter
         adapter = new MessageAdapter(msgs, meEmail);
         LinearLayoutManager lm = new LinearLayoutManager(this);
         lm.setStackFromEnd(true);
         rv.setLayoutManager(lm);
         rv.setAdapter(adapter);
 
-        // Load messages
         chatsRef.addValueEventListener(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 msgs.clear();
@@ -142,6 +143,8 @@ public class ChatActivity extends AppCompatActivity {
                     String s  = ds.child("sender").getValue(String.class);
                     String r  = ds.child("receiver").getValue(String.class);
                     String c  = ds.child("content").getValue(String.class);
+                    String legacyMsg = ds.child("message").getValue(String.class);
+                    String legacyImg = ds.child("imageUrl").getValue(String.class);
                     Boolean im = ds.child("image").getValue(Boolean.class);
                     Long ts   = ds.child("timestamp").getValue(Long.class);
 
@@ -152,12 +155,18 @@ public class ChatActivity extends AppCompatActivity {
                             || (s.equalsIgnoreCase(partnerEmail) && r.equalsIgnoreCase(meEmail));
                     if (!conv) continue;
 
-                    Message m = Boolean.TRUE.equals(im)
-                            ? new Message(s, r, c, ts, true)
-                            : new Message(s, r, c, ts);
-                    msgs.add(m);
+                    if (Boolean.TRUE.equals(im)) {
+                        if (TextUtils.isEmpty(c) && !TextUtils.isEmpty(legacyImg)) {
+                            c = legacyImg;
+                        }
+                        msgs.add(new Message(s, r, c, ts, true));
+                    } else {
+                        if (TextUtils.isEmpty(c) && !TextUtils.isEmpty(legacyMsg)) {
+                            c = legacyMsg;
+                        }
+                        msgs.add(new Message(s, r, c, ts));
+                    }
 
-                    // Local notify khi nhận tin mới
                     if (!s.equalsIgnoreCase(meEmail) && ts > lastTs) {
                         String shown = Boolean.TRUE.equals(im) ? "[Hình ảnh]" : (c != null ? c : "");
                         sendLocalNotification(s, shown);
@@ -167,30 +176,13 @@ public class ChatActivity extends AppCompatActivity {
                     }
                 }
                 adapter.notifyDataSetChanged();
-                if (!msgs.isEmpty()) rv.scrollToPosition(msgs.size()-1);
+                if (!msgs.isEmpty()) rv.scrollToPosition(msgs.size() - 1);
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
 
-        // Gửi text
-        btnSend.setOnClickListener(v -> {
-            if (meEmail == null || TextUtils.isEmpty(partnerEmail)) return;
-            String txt = etMessage.getText().toString().trim();
-            if (txt.isEmpty()) return;
+        btnSend.setOnClickListener(v -> sendTextMessage());
 
-            long ts = System.currentTimeMillis();
-            HashMap<String, Object> m = new HashMap<>();
-            m.put("sender", meEmail);
-            m.put("receiver", partnerEmail);
-            m.put("content", txt);
-            m.put("timestamp", ts);
-            m.put("image", false);
-
-            chatsRef.push().setValue(m);
-            etMessage.setText("");
-        });
-
-        // Chọn & gửi ảnh (GIỐNG ADMIN: có dialog xác nhận)
         pickImage = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
                 uri -> {
@@ -206,11 +198,30 @@ public class ChatActivity extends AppCompatActivity {
         btnImage.setOnClickListener(v -> pickImage.launch("image/*"));
     }
 
-    // Upload ảnh lên Storage -> lấy URL -> push vào chats (y hệt admin)
+    private void sendTextMessage() {
+        if (meEmail == null || TextUtils.isEmpty(partnerEmail)) return;
+        String txt = etMessage.getText().toString().trim();
+        if (txt.isEmpty()) return;
+
+        long ts = System.currentTimeMillis();
+        HashMap<String, Object> m = new HashMap<>();
+        m.put("sender", meEmail);
+        m.put("receiver", partnerEmail);
+        m.put("content", txt);
+        m.put("message", txt);
+        m.put("timestamp", ts);
+        m.put("image", false);
+
+        chatsRef.push().setValue(m);
+        etMessage.setText("");
+    }
+
     private void uploadImage(Uri uri) {
         if (meEmail == null || TextUtils.isEmpty(partnerEmail)) return;
 
-        StorageReference ref = storage.getReference("chat_images/" + UUID.randomUUID());
+        String name = UUID.randomUUID().toString() + ".jpg";
+        StorageReference ref = storage.getReference("chat_images/" + name);
+
         ref.putFile(uri)
                 .addOnSuccessListener(task -> ref.getDownloadUrl()
                         .addOnSuccessListener(url -> {
@@ -218,8 +229,9 @@ public class ChatActivity extends AppCompatActivity {
                             HashMap<String, Object> m = new HashMap<>();
                             m.put("sender",    meEmail);
                             m.put("receiver",  partnerEmail);
-                            m.put("content",   url.toString()); // URL ảnh
-                            m.put("image",     true);           // cờ ảnh = true
+                            m.put("content",   url.toString());
+                            m.put("imageUrl",  url.toString());
+                            m.put("image",     true);
                             m.put("timestamp", ts);
                             chatsRef.push().setValue(m);
                         })
@@ -229,7 +241,6 @@ public class ChatActivity extends AppCompatActivity {
                 );
     }
 
-    // Deep link
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -251,14 +262,14 @@ public class ChatActivity extends AppCompatActivity {
         }
     }
 
-    // Presence
     @Override
     protected void onStart() {
         super.onStart();
-        if (meEmail != null) {
+        if (meUid != null) {
             statusMeRef = FirebaseDatabase.getInstance()
-                    .getReference("status")
-                    .child(sanitizeEmail(meEmail));
+                    .getReference("users")
+                    .child(meUid)
+                    .child("status");
             statusMeRef.setValue(true);
             statusMeRef.onDisconnect().setValue(false);
         }
@@ -270,7 +281,6 @@ public class ChatActivity extends AppCompatActivity {
         if (statusMeRef != null) statusMeRef.setValue(false);
     }
 
-    // Notifications
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel ch = new NotificationChannel(
@@ -301,7 +311,7 @@ public class ChatActivity extends AppCompatActivity {
         );
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_chat)  // dùng icon chắc chắn tồn tại
+                .setSmallIcon(R.drawable.ic_chat)
                 .setContentTitle("Tin nhắn mới từ " + sender)
                 .setContentText(message != null ? message : "")
                 .setContentIntent(pi)
@@ -312,7 +322,6 @@ public class ChatActivity extends AppCompatActivity {
                 .notify((int) System.currentTimeMillis(), builder.build());
     }
 
-    // Utils
     private String sanitizeEmail(String e) {
         return e == null ? "" : e.replaceAll("[.#$\\[\\]]", ",");
     }

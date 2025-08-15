@@ -1,27 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
     <!-- Quyền truy cập mạng -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- Nếu Android 13+ -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
-    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
-    <!-- Quyền -->
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <!-- Android 14+ -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
-
-
     <application
-
         android:allowBackup="true"
         android:usesCleartextTraffic="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -32,20 +24,19 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DATN_MD02"
         tools:targetApi="31">
+
         <activity
             android:name=".OrderSuccessActivity"
             android:exported="false" />
         <activity
             android:name=".PromotionDialog"
             android:exported="false" />
-
         <activity
             android:name=".ReviewActivity"
             android:exported="false" />
         <activity
             android:name=".OrderDetailActivity"
             android:exported="false" />
-
 
         <!-- PayActivity với intent-filter nhận callback URI -->
         <activity
@@ -60,8 +51,6 @@
             </intent-filter>
         </activity>
 
-
-
         <!-- Splash / Launcher -->
         <activity
             android:name=".SplashActivity"
@@ -71,6 +60,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
         <!-- Cho phép Beams nhận FCM message và hiển thị notification -->
         <service
             android:name="com.pusher.pushnotifications.fcm.MessagingService"
@@ -86,21 +76,13 @@
         <activity
             android:name=".Cart.CartActivity"
             android:exported="false" />
-        <activity
-            android:name=".Fragment.CartFragment"
-            android:exported="false" />
-        <activity
-            android:name=".Adapter.CartAdapter"
-            android:exported="false" />
-        <activity
-            android:name=".Adapter.ReviewImageAdapter"
-            android:exported="false" />
+        <!-- ❌ Đã xóa CartFragment, CartAdapter, ReviewImageAdapter -->
         <activity
             android:name=".Product.ReviewListActivity"
             android:exported="false" />
         <activity
             android:name=".Product.AllReviewActivity"
-            android:exported="false" /> <!-- 🧩 Danh sách activity -->
+            android:exported="false" />
 
         <!-- Deep link mở ChatActivity -->
         <activity
@@ -119,6 +101,7 @@
             android:name=".service.MessageForegroundService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
+
         <activity
             android:name=".UserActivity"
             android:exported="false" />
@@ -133,7 +116,9 @@
             android:exported="false" />
         <activity
             android:name=".MainActivity"
-            android:exported="false" /> <!-- ✅ BỔ SUNG: Các activity sản phẩm -->
+            android:exported="false" />
+
+        <!-- Các activity sản phẩm -->
         <activity
             android:name=".Product.AllProductActivity"
             android:exported="false" />
@@ -142,9 +127,7 @@
             android:exported="false" />
         <activity
             android:name=".Product.FullscreenImageActivity"
-            android:exported="false" /> <!-- ⭐️ THÊM DÒNG NÀY -->
-        <!-- Launcher -->
+            android:exported="false" />
 
     </application>
-
 </manifest>

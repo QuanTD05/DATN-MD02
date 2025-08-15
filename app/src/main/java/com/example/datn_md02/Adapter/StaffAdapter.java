@@ -1,7 +1,6 @@
 package com.example.datn_md02.Adapter;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.view.LayoutInflater;
@@ -12,8 +11,8 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.bumptech.glide.Glide;
-import com.example.datn_md02.ChatActivity;
 import com.example.datn_md02.Model.User;
 import com.example.datn_md02.R;
 
@@ -53,25 +52,25 @@ public class StaffAdapter extends RecyclerView.Adapter<StaffAdapter.VH> {
         h.tvName.setText(u.getFullName());
         h.tvLast.setText(u.getLastMessageText());
         h.tvTime.setText(
-                u.getLastMessageTimestamp()>0
+                u.getLastMessageTimestamp() > 0
                         ? new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                         .format(new Date(u.getLastMessageTimestamp()))
                         : ""
         );
 
-        // unread highlight
+        // Màu nền nếu chưa đọc
         h.itemView.setBackgroundColor(u.isHasUnread()
                 ? Color.parseColor("#E0F2FF")
                 : Color.WHITE
         );
 
-        // presence dot
+        // Chấm trạng thái
         int c = u.isOnline()
-                ? Color.parseColor("#34D399")
-                : Color.parseColor("#A0AEC0");
+                ? Color.parseColor("#34D399") // xanh
+                : Color.parseColor("#A0AEC0"); // xám
         h.vDot.setBackgroundTintList(ColorStateList.valueOf(c));
 
-        h.itemView.setOnClickListener(v-> listener.onClick(u));
+        h.itemView.setOnClickListener(v -> listener.onClick(u));
     }
 
     @Override public int getItemCount() { return list.size(); }
@@ -79,7 +78,7 @@ public class StaffAdapter extends RecyclerView.Adapter<StaffAdapter.VH> {
     static class VH extends RecyclerView.ViewHolder {
         ImageView ivAvatar;
         TextView tvName, tvLast, tvTime;
-        View     vDot;
+        View vDot;
         VH(@NonNull View v) {
             super(v);
             ivAvatar = v.findViewById(R.id.imgAvatar);

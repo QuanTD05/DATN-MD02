@@ -64,7 +64,8 @@ public class ContactFragment extends Fragment {
         usersRef = FirebaseDatabase.getInstance().getReference("users");
         chatsRef = FirebaseDatabase.getInstance().getReference("chats");
 
-        loadStaff();
+        loadStaffRealtime();
+
         chatsRef.addValueEventListener(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 lastChatSnapshot = snap;
@@ -78,39 +79,45 @@ public class ContactFragment extends Fragment {
         return view;
     }
 
-    private void loadStaff() {
+    private void loadStaffRealtime() {
         usersRef.orderByChild("role").equalTo("staff")
-                .addListenerForSingleValueEvent(new ValueEventListener() {
+                .addValueEventListener(new ValueEventListener() {
                     @Override public void onDataChange(@NonNull DataSnapshot snap) {
                         staffList.clear();
+                        User currentUserObj = null;
+
                         for (DataSnapshot ds : snap.getChildren()) {
                             User u = ds.getValue(User.class);
                             if (u == null) continue;
-                            if (u.getEmail().equalsIgnoreCase(currentEmail)) continue;
 
-                            // init fields
+                            // Lấy status từ users
+                            Object statusVal = ds.child("status").getValue();
+                            boolean isOnline = false;
+                            if (statusVal instanceof String) {
+                                isOnline = "online".equalsIgnoreCase((String) statusVal);
+                            } else if (statusVal instanceof Boolean) {
+                                isOnline = (Boolean) statusVal;
+                            }
+                            u.setOnline(isOnline);
+
+                            // Mặc định tin nhắn
                             u.setLastMessageText("Chưa có tin nhắn");
                             u.setLastMessageTimestamp(0);
                             u.setUnreadCount(0);
                             u.setHasUnread(false);
-                            u.setOnline(false);
-                            staffList.add(u);
 
-                            // presence listener
-                            String key = sanitizeEmail(u.getEmail());
-                            FirebaseDatabase.getInstance()
-                                    .getReference("status")
-                                    .child(key)
-                                    .addValueEventListener(new ValueEventListener() {
-                                        @Override
-                                        public void onDataChange(@NonNull DataSnapshot s) {
-                                            Boolean on = s.getValue(Boolean.class);
-                                            u.setOnline(on != null && on);
-                                            adapter.notifyDataSetChanged();
-                                        }
-                                        @Override public void onCancelled(@NonNull DatabaseError e) {}
-                                    });
+                            if (u.getEmail().equalsIgnoreCase(currentEmail)) {
+                                currentUserObj = u; // lưu lại để đẩy lên đầu
+                            } else {
+                                staffList.add(u);
+                            }
                         }
+
+                        // Đẩy user hiện tại lên đầu danh sách
+                        if (currentUserObj != null) {
+                            staffList.add(0, currentUserObj);
+                        }
+
                         if (lastChatSnapshot != null) {
                             updateWithChatData(lastChatSnapshot);
                         } else {
@@ -133,6 +140,7 @@ public class ContactFragment extends Fragment {
             for (DataSnapshot c : snap.getChildren()) {
                 Message m = c.getValue(Message.class);
                 if (m == null) continue;
+
                 boolean between =
                         (m.getSender().equalsIgnoreCase(currentEmail)
                                 && m.getReceiver().equalsIgnoreCase(u.getEmail()))
@@ -161,19 +169,23 @@ public class ContactFragment extends Fragment {
             totalUnread += unread;
         }
 
-        // Gửi số lượng tin nhắn chưa đọc về UserActivity
         if (unreadListener != null) {
             unreadListener.onUnreadMessages(totalUnread);
         }
 
-        Collections.sort(staffList, (a,b) ->
-                Long.compare(b.getLastMessageTimestamp(),
-                        a.getLastMessageTimestamp()));
+        // Chỉ sắp xếp phần còn lại nếu danh sách > 1 phần tử
+        if (staffList.size() > 1) {
+            List<User> others = staffList.subList(1, staffList.size());
+            Collections.sort(others, (a, b) ->
+                    Long.compare(b.getLastMessageTimestamp(),
+                            a.getLastMessageTimestamp()));
+        }
+
         adapter.notifyDataSetChanged();
     }
 
+
     private void openChat(User u) {
-        // Đánh dấu tất cả tin nhắn từ u -> mình là đã đọc trước khi mở chat
         chatsRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -190,7 +202,6 @@ public class ContactFragment extends Fragment {
                     }
                 }
 
-                // Sau khi đánh dấu xong thì mở ChatActivity
                 Intent it = new Intent(getContext(), ChatActivity.class);
                 it.putExtra("partner_email",  u.getEmail());
                 it.putExtra("partner_name",   u.getFullName());
@@ -198,12 +209,7 @@ public class ContactFragment extends Fragment {
                 startActivity(it);
             }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
-    }
-
-    private String sanitizeEmail(String email) {
-        return email.replaceAll("[.#\\$\\[\\]]", ",");
     }
 }

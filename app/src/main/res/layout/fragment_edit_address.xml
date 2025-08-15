@@ -17,7 +17,7 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_alignParentStart="true"
-            android:src="@drawable/ic_logout1" />
+            android:src="@drawable/ic_back" />
 
         <TextView
             android:layout_width="wrap_content"

@@ -7,48 +7,45 @@ import com.google.firebase.database.IgnoreExtraProperties;
 public class Message {
     private String sender;
     private String receiver;
-
-    // Schema mới:
-    //  - Text:  content = text,      image = false
-    //  - Image: content = image URL, image = true
-    private String content;
-
-    // Tương thích ngược (dữ liệu cũ)
-    private String message;   // text cũ
-    private String imageUrl;  // URL ảnh cũ
-
+    private String content;   // text
+    private String imageUrl;  // ảnh
     private long timestamp;
+    private boolean isImage;  // phân biệt text / ảnh
+    private boolean seen;     // trạng thái đã xem
 
-    // Cờ phân biệt ảnh/text (schema mới)
-    private Boolean image;    // dùng Boolean để có thể null
-
-    // Trạng thái đã xem
-    private boolean seen = false;
-
-    public Message() {}
-
-    // Text
-    public Message(String sender, String receiver, String content, long timestamp) {
-        this.sender = sender;
-        this.receiver = receiver;
-        this.content = content;
-        this.message = content;  // compat cũ
-        this.timestamp = timestamp;
-        this.image = false;
+    public Message() {
+        // Firebase cần constructor rỗng
     }
 
-    // Image (schema mới: URL nằm trong content)
+    // Gửi text
+    public Message(String sender, String receiver, String text, long timestamp) {
+        this.sender = sender;
+        this.receiver = receiver;
+        this.content = text;
+        this.imageUrl = null;
+        this.timestamp = timestamp;
+        this.isImage = false;
+        this.seen = false;
+    }
+
+    // Gửi ảnh
     public Message(String sender, String receiver, String imageUrl, long timestamp, boolean isImage) {
         this.sender = sender;
         this.receiver = receiver;
         this.timestamp = timestamp;
-        this.content = imageUrl;   // NEW schema
-        this.imageUrl = imageUrl;  // compat cũ
-        this.message = "";
-        this.image = true;
+        this.isImage = isImage;
+        this.seen = false;
+
+        if (isImage) {
+            this.imageUrl = imageUrl;
+            this.content = null;
+        } else {
+            this.content = imageUrl;
+            this.imageUrl = null;
+        }
     }
 
-    // ==== Getters / Setters ====
+    // ===== Getter / Setter =====
     public String getSender() { return sender; }
     public void setSender(String sender) { this.sender = sender; }
 
@@ -58,29 +55,21 @@ public class Message {
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
 
-    public String getMessage() { return message; }
-    public void setMessage(String message) { this.message = message; }
-
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 
     public long getTimestamp() { return timestamp; }
     public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
 
-    // CHỈ GIỮ get/setImage — KHÔNG có isImage() để tránh xung đột
-    public Boolean getImage() { return image; }
-    public void setImage(Boolean image) { this.image = image; }
+    public boolean isImage() { return isImage; }
+    public void setImage(boolean image) { isImage = image; }
 
     public boolean isSeen() { return seen; }
     public void setSeen(boolean seen) { this.seen = seen; }
 
-    // ===== Helpers không map lên Firebase =====
-    @Exclude
-    public boolean isImageFlag() { return image != null && image; }
-
+    // ===== Helpers không lưu lên Firebase =====
     @Exclude
     public String getDisplayContent() {
-        if (content != null && !content.trim().isEmpty()) return content;
-        return message != null ? message : "";
+        return isImage ? "[Hình ảnh]" : (content != null ? content : "");
     }
 }

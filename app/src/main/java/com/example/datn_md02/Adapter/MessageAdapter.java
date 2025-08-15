@@ -1,10 +1,12 @@
 package com.example.datn_md02.Adapter;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -14,6 +16,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.datn_md02.Model.Message;
 import com.example.datn_md02.R;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -35,8 +42,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     @Override
     public int getItemViewType(int position) {
-        String sender = messages.get(position).getSender();
-        sender = sender != null ? sender.trim().toLowerCase() : "";
+        String sender = safe(messages.get(position).getSender()).trim().toLowerCase();
         return sender.equals(currentUser) ? TYPE_SENT : TYPE_RECEIVED;
     }
 
@@ -59,35 +65,21 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         Message msg = messages.get(position);
         Context context = holder.itemView.getContext();
 
-        // Nội dung text để hiển thị
-        String content = safe(msg.getDisplayContent());
-        String rawContent = safe(msg.getContent());
-        String legacyImageUrl = safe(msg.getImageUrl());
-        boolean imageFlag = msg.getImage() != null && msg.getImage(); // cờ schema mới
-
-        // Quy tắc nhận dạng ảnh:
-        // 1) image == true
-        // 2) hoặc có imageUrl cũ
-        // 3) hoặc content là URL http(s)
-        boolean looksLikeUrl = rawContent.startsWith("http://") || rawContent.startsWith("https://");
-        boolean isImage = imageFlag || !TextUtils.isEmpty(legacyImageUrl) || looksLikeUrl;
-
-        // URL ảnh thực tế để load
-        String imageToLoad = !TextUtils.isEmpty(legacyImageUrl) ? legacyImageUrl
-                : (isImage ? rawContent : "");
-
+        boolean isImage = msg.isImage();
+        String content = safe(msg.getContent());
+        String imageUrl = safe(msg.getImageUrl());
         String timeText = formatTimestamp(msg.getTimestamp());
 
         if (holder instanceof SentViewHolder) {
             SentViewHolder h = (SentViewHolder) holder;
-
-            if (isImage) {
+            if (isImage && !TextUtils.isEmpty(imageUrl)) {
                 h.imgMsg.setVisibility(View.VISIBLE);
                 h.tvMsg.setVisibility(View.GONE);
                 Glide.with(context)
-                        .load(imageToLoad)
+                        .load(imageUrl)
                         .placeholder(R.drawable.image_placeholder)
                         .error(R.drawable.ic_chat)
+                        .fitCenter()
                         .into(h.imgMsg);
             } else {
                 h.imgMsg.setVisibility(View.GONE);
@@ -96,16 +88,22 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             }
             h.tvTime.setText(timeText);
 
+            // Long click -> Sửa/Xóa
+            h.itemView.setOnLongClickListener(v -> {
+                showMessageOptions(context, msg);
+                return true;
+            });
+
         } else if (holder instanceof ReceivedViewHolder) {
             ReceivedViewHolder h = (ReceivedViewHolder) holder;
-
-            if (isImage) {
+            if (isImage && !TextUtils.isEmpty(imageUrl)) {
                 h.imgMsg.setVisibility(View.VISIBLE);
                 h.tvMsg.setVisibility(View.GONE);
                 Glide.with(context)
-                        .load(imageToLoad)
+                        .load(imageUrl)
                         .placeholder(R.drawable.image_placeholder)
                         .error(R.drawable.ic_chat)
+                        .fitCenter()
                         .into(h.imgMsg);
             } else {
                 h.imgMsg.setVisibility(View.GONE);
@@ -154,5 +152,99 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         Date date = new Date(timestamp);
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm dd/MM/yyyy", Locale.getDefault());
         return sdf.format(date);
+    }
+
+    // ===== Sửa / Xóa =====
+    private void showMessageOptions(Context context, Message msg) {
+        String[] options = {"Sửa tin nhắn", "Xóa tin nhắn"};
+        new AlertDialog.Builder(context)
+                .setTitle("Tùy chọn")
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) {
+                        editMessage(context, msg);
+                    } else if (which == 1) {
+                        confirmDeleteMessage(context, msg);
+                    }
+                })
+                .show();
+    }
+
+    private void editMessage(Context context, Message message) {
+        final EditText input = new EditText(context);
+        input.setText(message.getContent());
+        new AlertDialog.Builder(context)
+                .setTitle("Sửa tin nhắn")
+                .setView(input)
+                .setPositiveButton("Lưu", (dialog, which) -> {
+                    String newText = input.getText().toString().trim();
+                    if (!newText.isEmpty()) {
+                        DatabaseReference chatRef = FirebaseDatabase.getInstance().getReference("chats");
+                        chatRef.orderByChild("timestamp").equalTo(message.getTimestamp())
+                                .addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                        for (DataSnapshot child : snapshot.getChildren()) {
+                                            Message snapMsg = child.getValue(Message.class);
+                                            if (snapMsg != null &&
+                                                    snapMsg.getSender().equals(message.getSender()) &&
+                                                    snapMsg.getReceiver().equals(message.getReceiver()) &&
+                                                    snapMsg.getTimestamp() == message.getTimestamp()) {
+                                                child.getRef().child("content").setValue(newText);
+                                                child.getRef().child("image").setValue(false);
+                                                child.getRef().child("imageUrl").setValue(null);
+                                                int index = messages.indexOf(message);
+                                                if (index != -1) {
+                                                    message.setContent(newText);
+                                                    message.setImage(false);
+                                                    message.setImageUrl(null);
+                                                    notifyItemChanged(index);
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {}
+                                });
+                    }
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    private void confirmDeleteMessage(Context context, Message msg) {
+        new AlertDialog.Builder(context)
+                .setTitle("Xóa tin nhắn")
+                .setMessage("Bạn có chắc chắn muốn xóa tin nhắn này?")
+                .setPositiveButton("Xóa", (dialog, which) -> deleteMessage(msg))
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    private void deleteMessage(Message message) {
+        DatabaseReference chatRef = FirebaseDatabase.getInstance().getReference("chats");
+        chatRef.orderByChild("timestamp").equalTo(message.getTimestamp())
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        for (DataSnapshot child : snapshot.getChildren()) {
+                            Message snapMsg = child.getValue(Message.class);
+                            if (snapMsg != null &&
+                                    snapMsg.getSender().equals(message.getSender()) &&
+                                    snapMsg.getReceiver().equals(message.getReceiver()) &&
+                                    snapMsg.getTimestamp() == message.getTimestamp()) {
+                                child.getRef().removeValue();
+                                int index = messages.indexOf(message);
+                                if (index != -1) {
+                                    messages.remove(index);
+                                    notifyItemRemoved(index);
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {}
+                });
     }
 }
