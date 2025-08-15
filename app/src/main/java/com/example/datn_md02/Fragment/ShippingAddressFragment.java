@@ -43,9 +43,12 @@ public class ShippingAddressFragment extends Fragment {
 
         View view = inflater.inflate(com.example.datn_md02.R.layout.fragment_shipping_address, container, false);
         addressListLayout = view.findViewById(com.example.datn_md02.R.id.addressListLayout);
-         btnBack = view.findViewById(R.id.btnBack);
+        ImageView btnBack = view.findViewById(R.id.btnBack);
+
         btnBack.setOnClickListener(v -> {
-            requireActivity().onBackPressed(); // quay lại màn hình trước
+            if (getActivity() != null) {
+                getActivity().onBackPressed(); // hoặc requireActivity().onBackPressed();
+            }
         });
         // Nút thêm địa chỉ
         FloatingActionButton btnAdd = view.findViewById(com.example.datn_md02.R.id.btnAdd);

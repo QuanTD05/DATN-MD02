@@ -129,13 +129,23 @@
                 app:tint="@color/white" />
         </LinearLayout>
 
-        <!-- Banner -->
-        <ImageView
-            android:layout_marginTop="16dp"
+        <!-- Banner chạy -->
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/bannerViewPager"
             android:layout_width="match_parent"
             android:layout_height="180dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/hehe" />
+            android:layout_marginTop="16dp" />
+
+        <!-- Chấm tròn chỉ báo banner -->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/bannerIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="10dp"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_edittext"
+            android:layout_marginTop="8dp"
+            app:tabIndicatorHeight="0dp"
+            app:tabIndicatorFullWidth="false" />
 
         <!-- Danh mục -->
         <LinearLayout
@@ -206,7 +216,6 @@
                         android:textColor="@color/white"
                         android:gravity="center" />
                 </LinearLayout>
-
 
                 <!-- Danh mục Ghế -->
                 <LinearLayout

@@ -45,6 +45,13 @@ public class BankAccountFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recyclerBankAccounts);
         btnAddBank = view.findViewById(R.id.btnAddBank);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        ImageView btnBack = view.findViewById(R.id.btnBack);
+
+        btnBack.setOnClickListener(v -> {
+            if (getActivity() != null) {
+                getActivity().onBackPressed(); // hoặc requireActivity().onBackPressed();
+            }
+        });
 
         firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
 

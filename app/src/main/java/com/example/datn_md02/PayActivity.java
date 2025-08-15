@@ -7,7 +7,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -17,19 +20,21 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.datn_md02.Adapter.CartOrderAdapter;
 import com.example.datn_md02.Api.CreateOrder;
 import com.example.datn_md02.Constant.AppInfo;
 import com.example.datn_md02.Model.Cart;
 import com.example.datn_md02.Model.CartItem;
 import com.example.datn_md02.Model.NotificationItem;
 import com.example.datn_md02.Model.Order;
-import com.example.datn_md02.Adapter.CartOrderAdapter;
+import com.example.datn_md02.Model.Promotion;     // <- dùng cho tính khuyến mãi
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONObject;
 
@@ -37,8 +42,10 @@ import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;     // <- thêm
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;        // <- thêm
 
 import vn.zalopay.sdk.Environment;
 import vn.zalopay.sdk.ZaloPayError;
@@ -63,6 +70,7 @@ public class PayActivity extends AppCompatActivity {
     private double subtotal = 0;
     private double discount = 0;
     private String appliedCouponCode = "";
+    private ImageView imgEditAddress,btnBack;
 
     private boolean awaitingZaloPayResult = false;
     private String lastAppTransID = "";
@@ -97,30 +105,44 @@ public class PayActivity extends AppCompatActivity {
         rbCard           = findViewById(R.id.rbCard);
         rbZaloPay        = findViewById(R.id.rbZaloPay);
         btnCheckout      = findViewById(R.id.btnCheckout);
+        imgEditAddress   = findViewById(R.id.imgEditAddress);
+        View.OnClickListener editAddressListener = v -> showEditAddressDialog();
 
-        // Áp mã khuyến mãi
-        tvCoupon.setOnClickListener(v -> {
-            PromotionDialog dialog = new PromotionDialog(this, promotion -> {
-                appliedCouponCode = promotion.getCode();
-                discount = subtotal * promotion.getDiscount() / 100.0;
-                tvCoupon.setText("Áp dụng: " + promotion.getCode() + " (-" + promotion.getDiscount() + "%)");
-                updateTotalUI();
-                Toast.makeText(this, "Đã áp dụng mã " + promotion.getCode(), Toast.LENGTH_SHORT).show();
-            });
-            dialog.show();
-        });
-
+        imgEditAddress.setOnClickListener(editAddressListener);
         // Lấy giỏ hàng từ Intent
         cartItems = (ArrayList<Cart>) getIntent().getSerializableExtra("cartItems");
         if (cartItems == null) cartItems = new ArrayList<>();
         cartOrderAdapter = new CartOrderAdapter(cartItems);
         rvCartItems.setLayoutManager(new LinearLayoutManager(this));
         rvCartItems.setAdapter(cartOrderAdapter);
+        btnBack      = findViewById(R.id.btnBack);
+
+        btnBack.setOnClickListener(v -> finish());
 
         calculateSubtotal();
         loadDefaultAddress();
         loadDefaultBankCard();
         updateTotalUI();
+
+        // Áp mã khuyến mãi (lọc theo sản phẩm trong giỏ + chỉ giảm trên item đủ điều kiện)
+        tvCoupon.setOnClickListener(v -> {
+            Set<String> productIdsTrongGio = buildProductIdSetFromCart();
+
+            // Dùng PromotionDialog phiên bản nhận productIds để lọc danh sách hiển thị
+            PromotionDialog dialog = new PromotionDialog(this, productIdsTrongGio, promotion -> {
+                appliedCouponCode = promotion.getCode();
+
+                // Tính giảm giá chỉ trên các item hợp lệ với promotion
+                discount = computeDiscountForPromotion(promotion);
+
+                // Cập nhật UI
+                double percent = promotion.getDiscount(); // % theo model hiện tại của bạn
+                tvCoupon.setText("Áp dụng: " + promotion.getCode() + " (-" + (percent) + "%)");
+                updateTotalUI();
+                Toast.makeText(this, "Đã áp dụng mã " + promotion.getCode(), Toast.LENGTH_SHORT).show();
+            });
+            dialog.show();
+        });
 
         btnCheckout.setOnClickListener(v -> {
             if (!rbCOD.isChecked() && !rbCard.isChecked() && !rbZaloPay.isChecked()) {
@@ -175,6 +197,120 @@ public class PayActivity extends AppCompatActivity {
         });
     }
 
+    private void showEditAddressDialog() {
+        if (firebaseUser == null) return;
+
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_address, null);
+        EditText edtName     = dialogView.findViewById(R.id.edtName);
+        EditText edtPhone    = dialogView.findViewById(R.id.edtPhone);
+        EditText edtStreet   = dialogView.findViewById(R.id.edtStreet);
+        EditText edtWard     = dialogView.findViewById(R.id.edtWard);
+        EditText edtDistrict = dialogView.findViewById(R.id.edtDistrict);
+        EditText edtCity     = dialogView.findViewById(R.id.edtCity);
+
+        dbRef.child("shipping_addresses")
+                .child(firebaseUser.getUid())
+                .orderByChild("default").equalTo(true).limitToFirst(1)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        for (DataSnapshot s : snapshot.getChildren()) {
+                            String name     = s.child("name").getValue(String.class);
+                            String phone    = s.child("phone").getValue(String.class);
+                            String street   = s.child("street").getValue(String.class);
+                            String ward     = s.child("ward").getValue(String.class);
+                            String district = s.child("district").getValue(String.class);
+                            String city     = s.child("city").getValue(String.class);
+                            String addrId   = s.child("id").getValue(String.class);
+
+                            edtName.setText(name != null ? name : "");
+                            edtPhone.setText(phone != null ? phone : "");
+                            edtStreet.setText(street != null ? street : "");
+                            edtWard.setText(ward != null ? ward : "");
+                            edtDistrict.setText(district != null ? district : "");
+                            edtCity.setText(city != null ? city : "");
+
+                            new AlertDialog.Builder(PayActivity.this)
+                                    .setTitle("Sửa địa chỉ")
+                                    .setView(dialogView)
+                                    .setPositiveButton("Lưu", (d, w) -> {
+                                        String newName     = edtName.getText().toString().trim();
+                                        String newPhone    = edtPhone.getText().toString().trim();
+                                        String newStreet   = edtStreet.getText().toString().trim();
+                                        String newWard     = edtWard.getText().toString().trim();
+                                        String newDistrict = edtDistrict.getText().toString().trim();
+                                        String newCity     = edtCity.getText().toString().trim();
+
+                                        if (newName.isEmpty() || newPhone.isEmpty() ||
+                                                newStreet.isEmpty() || newWard.isEmpty() ||
+                                                newDistrict.isEmpty() || newCity.isEmpty()) {
+                                            Toast.makeText(PayActivity.this, "Vui lòng nhập đủ thông tin", Toast.LENGTH_SHORT).show();
+                                            return;
+                                        }
+
+                                        String fullAddr = newStreet + ", " + newWard + ", " + newDistrict + ", " + newCity;
+
+                                        if (addrId != null) {
+                                            DatabaseReference addrRef = dbRef.child("shipping_addresses")
+                                                    .child(firebaseUser.getUid())
+                                                    .child(addrId);
+
+                                            addrRef.child("name").setValue(newName);
+                                            addrRef.child("phone").setValue(newPhone);
+                                            addrRef.child("street").setValue(newStreet);
+                                            addrRef.child("ward").setValue(newWard);
+                                            addrRef.child("district").setValue(newDistrict);
+                                            addrRef.child("city").setValue(newCity);
+                                            addrRef.child("fullAddress").setValue(fullAddr);
+                                        }
+
+                                        tvReceiverName.setText(newName + " | " + newPhone);
+                                        tvReceiverAddress.setText(fullAddr);
+
+                                        Toast.makeText(PayActivity.this, "Đã cập nhật địa chỉ", Toast.LENGTH_SHORT).show();
+                                    })
+                                    .setNegativeButton("Hủy", null)
+                                    .show();
+                            break;
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) { }
+                });
+    }
+
+    // ====== Khuyến mãi theo sản phẩm: helper ======
+
+    private Set<String> buildProductIdSetFromCart() {
+        Set<String> ids = new HashSet<>();
+        for (Cart c : cartItems) {
+            if (c.getProductId() != null) ids.add(c.getProductId());
+        }
+        return ids;
+    }
+
+    /** Tính giảm giá chỉ trên các item thỏa điều kiện của promotion */
+    private double computeDiscountForPromotion(Promotion promotion) {
+        boolean applyAll = promotion.isApply_to_all();
+        List<String> allowIds = promotion.getApply_to_product_ids();
+
+        double eligibleSubtotal = 0;
+        for (Cart c : cartItems) {
+            boolean ok = applyAll;
+            if (!applyAll) {
+                ok = (allowIds != null && allowIds.contains(c.getProductId()));
+            }
+            if (ok) {
+                eligibleSubtotal += c.getPrice() * c.getQuantity();
+            }
+        }
+
+        double percent = promotion.getDiscount(); // theo model hiện tại
+        return eligibleSubtotal * (percent / 100.0);
+    }
+
+    // ==============================================
 
     private void updateTotalUI() {
         // Định dạng số với dấu phân nhóm theo chuẩn Việt Nam
@@ -187,8 +323,6 @@ public class PayActivity extends AppCompatActivity {
         double total = subtotal + shippingFee - discount;
         tvTotal.setText("Tổng thanh toán: " + nf.format(total) + " VND");
     }
-
-
 
     private void showZaloPayDialog(String token, String amount) {
         new AlertDialog.Builder(this)

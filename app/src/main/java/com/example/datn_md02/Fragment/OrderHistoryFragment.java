@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -36,6 +37,13 @@ public class OrderHistoryFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_order_history, container, false);
         tabLayout = view.findViewById(R.id.tabLayout);
         viewPager2 = view.findViewById(R.id.viewPager2);
+        ImageView btnBack = view.findViewById(R.id.btnBack);
+
+        btnBack.setOnClickListener(v -> {
+            if (getActivity() != null) {
+                getActivity().onBackPressed(); // hoặc requireActivity().onBackPressed();
+            }
+        });
 
         // Set adapter cho ViewPager2
         viewPager2.setAdapter(new OrderPagerAdapter(requireActivity()));

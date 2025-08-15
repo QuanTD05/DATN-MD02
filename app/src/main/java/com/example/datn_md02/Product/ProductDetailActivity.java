@@ -58,7 +58,7 @@ public class ProductDetailActivity extends AppCompatActivity {
         }
 
         setEventHandlers();
-        loadCartItemCount(); // 🔹 Thêm mới
+        loadCartItemCount();
 
         btnCart.setOnClickListener(view -> {
             Intent intent = new Intent(ProductDetailActivity.this, CartActivity.class);
@@ -80,7 +80,7 @@ public class ProductDetailActivity extends AppCompatActivity {
         btnDecrease = findViewById(R.id.btnDecrease);
         btnAddToCart = findViewById(R.id.btnAddToCart);
         btnCart = findViewById(R.id.btnCart);
-        tvCartBadge = findViewById(R.id.tvCartBadge); // 🔹 Badge hiển thị số lượng
+        tvCartBadge = findViewById(R.id.tvCartBadge);
 
         recyclerViewVariant = findViewById(R.id.recyclerVariants);
         recyclerViewVariant.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
@@ -230,6 +230,12 @@ public class ProductDetailActivity extends AppCompatActivity {
             return;
         }
 
+        // Kiểm tra nếu sản phẩm có biến thể thì bắt buộc chọn
+        if (product.getVariants() != null && !product.getVariants().isEmpty() && selectedVariant == null) {
+            Toast.makeText(this, "Vui lòng chọn kích thước và màu sắc trước khi thêm vào giỏ hàng", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         String userId = user.getUid();
         DatabaseReference cartRef = FirebaseDatabase.getInstance().getReference("Cart").child(userId);
         String cartId = cartRef.push().getKey();
@@ -244,7 +250,6 @@ public class ProductDetailActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Toast.makeText(this, "Lỗi khi thêm vào giỏ hàng", Toast.LENGTH_SHORT).show());
     }
 
-    // 🔹 Lấy số lượng item trong giỏ hàng để hiển thị badge
     private void loadCartItemCount() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {

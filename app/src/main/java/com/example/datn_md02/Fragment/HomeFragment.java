@@ -2,6 +2,8 @@ package com.example.datn_md02.Fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -17,7 +19,9 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
+import com.example.datn_md02.Adapter.BannerAdapter;
 import com.example.datn_md02.Adapter.ProductAdapter;
 import com.example.datn_md02.Cart.CartActivity;
 import com.example.datn_md02.Model.Product;
@@ -26,6 +30,8 @@ import com.example.datn_md02.Model.Variant;
 import com.example.datn_md02.Product.AllProductActivity;
 import com.example.datn_md02.Product.ProductDetailActivity;
 import com.example.datn_md02.R;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -44,6 +50,7 @@ public class HomeFragment extends Fragment {
 
     private static final String TAG = "HomeFragment";
 
+    // Product list
     private RecyclerView recyclerAllProduct;
     private ProductAdapter allProductAdapter;
     private List<Product> allProductList;
@@ -53,6 +60,16 @@ public class HomeFragment extends Fragment {
     private TextView tvAll;
     private EditText edtSearch;
     private TextView tvCartBadge;
+
+    // Banner
+    private ViewPager2 bannerViewPager;
+    private TabLayout bannerIndicator;
+    private BannerAdapter bannerAdapter;
+    private List<String> bannerList;
+    private Handler bannerHandler;
+    private Runnable autoSlideRunnable;
+    private final int bannerIntervalMs = 5000;
+    private int bannerCurrentIndex = 0;
 
     @Nullable
     @Override
@@ -64,15 +81,15 @@ public class HomeFragment extends Fragment {
 
         productRef = FirebaseDatabase.getInstance().getReference("product");
 
-        // Setup RecyclerView
+        // RecyclerView sản phẩm
         recyclerAllProduct = view.findViewById(R.id.recyclerAllProduct);
-        recyclerAllProduct.setLayoutManager(new GridLayoutManager(getContext(), 2));
+        recyclerAllProduct.setLayoutManager(new GridLayoutManager(requireContext(), 2));
 
         allProductList = new ArrayList<>();
         filteredList = new ArrayList<>();
 
-        allProductAdapter = new ProductAdapter(getContext(), filteredList, product -> {
-            Intent intent = new Intent(getContext(), ProductDetailActivity.class);
+        allProductAdapter = new ProductAdapter(requireContext(), filteredList, product -> {
+            Intent intent = new Intent(requireContext(), ProductDetailActivity.class);
             intent.putExtra("product", product);
             startActivity(intent);
         });
@@ -81,28 +98,110 @@ public class HomeFragment extends Fragment {
         // Giỏ hàng
         ImageView ivCart = view.findViewById(R.id.ic_cart);
         tvCartBadge = view.findViewById(R.id.cart_badge);
+        ivCart.setOnClickListener(v -> startActivity(new Intent(requireContext(), CartActivity.class)));
 
-
-        ivCart.setOnClickListener(v -> startActivity(new Intent(getContext(), CartActivity.class)));
-
-        // "Tất cả" → AllProductActivity
+        // "Tất cả"
         tvAll = view.findViewById(R.id.tvAll);
         tvAll.setOnClickListener(v -> {
-            Intent intent = new Intent(getContext(), AllProductActivity.class);
+            Intent intent = new Intent(requireContext(), AllProductActivity.class);
             intent.putExtra("categoryName", "sản phẩm");
             startActivity(intent);
         });
 
-        // Load dữ liệu ban đầu
+        // Banner setup
+        bannerViewPager = view.findViewById(R.id.bannerViewPager);
+        bannerIndicator = view.findViewById(R.id.bannerIndicator);
+        bannerList = new ArrayList<>();
+        bannerAdapter = new BannerAdapter(requireContext(), bannerList);
+        bannerViewPager.setAdapter(bannerAdapter);
+
+        // TabLayout indicator
+        new TabLayoutMediator(bannerIndicator, bannerViewPager,
+                (tab, position) -> {
+                    // no action needed, just indicator
+                }).attach();
+
+        // Handler & runnable
+        bannerHandler = new Handler(Looper.getMainLooper());
+        autoSlideRunnable = () -> {
+            if (!bannerList.isEmpty() && bannerAdapter.getItemCount() > 0) {
+                bannerCurrentIndex = (bannerCurrentIndex + 1) % bannerAdapter.getItemCount();
+                bannerViewPager.setCurrentItem(bannerCurrentIndex, true);
+                bannerHandler.postDelayed(autoSlideRunnable, bannerIntervalMs);
+            }
+        };
+
+        bannerViewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                bannerCurrentIndex = position;
+                super.onPageSelected(position);
+            }
+        });
+
+        // Load banners from Firebase
+        loadBannerFromFirebase();
+
+        // Load sản phẩm
         loadAllProducts();
 
-        // Search + Category click
+        // Search + Category
         setupSearchAndCategory(view);
 
         // Cập nhật badge giỏ hàng
         updateCartBadgeFromFirebase();
 
         return view;
+    }
+
+    private void loadBannerFromFirebase() {
+        DatabaseReference bannerRef = FirebaseDatabase.getInstance().getReference("banners");
+        bannerRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                bannerList.clear();
+                for (DataSnapshot child : snapshot.getChildren()) {
+                    String url = null;
+                    Object value = child.getValue();
+
+                    if (value instanceof String) {
+                        url = ((String) value).trim();
+                    } else if (value instanceof Map) {
+                        Object imageUrlObj = ((Map<?, ?>) value).get("imageUrl");
+                        if (imageUrlObj instanceof String) {
+                            url = ((String) imageUrlObj).trim();
+                        }
+                    }
+
+                    if (url != null && !url.isEmpty()) {
+                        bannerList.add(url);
+                    }
+                }
+                bannerAdapter.notifyDataSetChanged();
+
+                if (bannerList.isEmpty()) {
+                    bannerHandler.removeCallbacks(autoSlideRunnable);
+                } else {
+                    bannerCurrentIndex = 0;
+                    bannerViewPager.setCurrentItem(0, false);
+                    startAutoSlide();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e(TAG, "Lỗi load banner: " + error.getMessage());
+            }
+        });
+    }
+
+    private void startAutoSlide() {
+        bannerHandler.removeCallbacks(autoSlideRunnable);
+        bannerHandler.postDelayed(autoSlideRunnable, bannerIntervalMs);
+    }
+
+    private void stopAutoSlide() {
+        if (bannerHandler != null) bannerHandler.removeCallbacks(autoSlideRunnable);
     }
 
     private void loadAllProducts() {
@@ -132,14 +231,14 @@ public class HomeFragment extends Fragment {
         try {
             Product product = new Product();
 
-            String productId = data.child("productId").getValue(String.class);
+            String productId = safeGetString(data.child("productId"));
             if (productId == null) productId = data.getKey();
             product.setProductId(productId);
 
-            product.setName(data.child("name").getValue(String.class));
-            product.setImageUrl(data.child("imageUrl").getValue(String.class));
-            product.setDescription(data.child("description").getValue(String.class));
-            product.setCategoryId(data.child("categoryId").getValue(String.class));
+            product.setName(safeGetString(data.child("name")));
+            product.setImageUrl(safeGetString(data.child("imageUrl")));
+            product.setDescription(safeGetString(data.child("description")));
+            product.setCategoryId(safeGetString(data.child("categoryId")));
 
             Object createdObj = data.child("created").getValue();
             if (createdObj instanceof Long) {
@@ -149,18 +248,20 @@ public class HomeFragment extends Fragment {
             // Variants
             Map<String, Map<String, Variant>> variantsMap = new HashMap<>();
             DataSnapshot variantsSnap = data.child("variants");
-            for (DataSnapshot sizeSnap : variantsSnap.getChildren()) {
-                String size = sizeSnap.getKey();
-                Map<String, Variant> colorMap = new HashMap<>();
-                for (DataSnapshot colorSnap : sizeSnap.getChildren()) {
-                    String color = colorSnap.getKey();
-                    Variant variant = colorSnap.getValue(Variant.class);
-                    if (color != null && variant != null) {
-                        colorMap.put(color, variant);
+            if (variantsSnap.exists()) {
+                for (DataSnapshot sizeSnap : variantsSnap.getChildren()) {
+                    String size = sizeSnap.getKey();
+                    Map<String, Variant> colorMap = new HashMap<>();
+                    for (DataSnapshot colorSnap : sizeSnap.getChildren()) {
+                        String color = colorSnap.getKey();
+                        Variant variant = colorSnap.getValue(Variant.class);
+                        if (color != null && variant != null) {
+                            colorMap.put(color, variant);
+                        }
                     }
-                }
-                if (size != null) {
-                    variantsMap.put(size, colorMap);
+                    if (size != null) {
+                        variantsMap.put(size, colorMap);
+                    }
                 }
             }
             product.setVariants(variantsMap);
@@ -182,6 +283,14 @@ public class HomeFragment extends Fragment {
             Log.e(TAG, "Lỗi parse sản phẩm: " + e.getMessage(), e);
             return null;
         }
+    }
+
+    private String safeGetString(DataSnapshot snapshot) {
+        Object value = snapshot.getValue();
+        if (value instanceof String) {
+            return ((String) value).trim();
+        }
+        return null;
     }
 
     private void setupSearchAndCategory(View view) {
@@ -222,13 +331,15 @@ public class HomeFragment extends Fragment {
 
     private void openAllProductWithCategory(String categoryId, String categoryName) {
         Log.d(TAG, "Mở AllProductActivity với loại: " + categoryName);
-        Intent intent = new Intent(getContext(), AllProductActivity.class);
+        Intent intent = new Intent(requireContext(), AllProductActivity.class);
         intent.putExtra("categoryId", categoryId);
         intent.putExtra("categoryName", categoryName);
         startActivity(intent);
     }
 
     private void updateCartBadge(int cartCount) {
+        if (tvCartBadge == null) return;
+
         if (cartCount > 0) {
             tvCartBadge.setText(String.valueOf(cartCount));
             tvCartBadge.setVisibility(View.VISIBLE);
@@ -263,5 +374,25 @@ public class HomeFragment extends Fragment {
                 Log.e(TAG, "Lỗi load giỏ hàng: " + error.getMessage());
             }
         });
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        stopAutoSlide();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (bannerList != null && !bannerList.isEmpty()) {
+            startAutoSlide();
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        stopAutoSlide();
     }
 }

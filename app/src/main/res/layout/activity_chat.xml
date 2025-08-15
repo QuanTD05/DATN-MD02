@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="#F4F1E8">
 
-    <!-- HEADER: Avatar + Tên (Online/Offline) -->
+    <!-- HEADER: Nút quay lại + Avatar + Tên -->
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
@@ -14,6 +14,17 @@
         android:padding="16dp"
         android:gravity="center_vertical">
 
+        <!-- Nút quay lại -->
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:padding="6dp"
+            android:src="@drawable/ic_back1"
+            android:layout_gravity="top|start"
+            android:layout_marginEnd="12dp"/>
+
+        <!-- Avatar -->
         <ImageView
             android:id="@+id/ivChatAvatar"
             android:layout_width="36dp"
@@ -23,6 +34,7 @@
             android:background="@drawable/circle_bg"
             android:layout_marginEnd="12dp" />
 
+        <!-- Tiêu đề -->
         <TextView
             android:id="@+id/tvChatTitle"
             android:layout_width="wrap_content"
@@ -34,16 +46,17 @@
     </LinearLayout>
 
     <!-- MESSAGES -->
+
+    <!-- INPUT BAR -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvMessages"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="8dp"
         android:clipToPadding="false"
+        android:padding="8dp"
         android:scrollbars="vertical" />
 
-    <!-- INPUT BAR -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -67,6 +80,7 @@
             android:layout_weight="1"
             android:hint="Nhập tin nhắn..."
             android:padding="12dp"
+            android:background="@drawable/bg_edittext"
             android:textColor="#000000"
             android:textColorHint="#888888"
             android:textSize="16sp" />
