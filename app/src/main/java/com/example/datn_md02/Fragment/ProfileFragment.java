@@ -96,7 +96,7 @@ public class ProfileFragment extends Fragment {
                     .setTitle("Đăng xuất")
                     .setMessage("Bạn có chắc chắn muốn đăng xuất không?")
                     .setPositiveButton("Đăng xuất", (dialog, which) -> {
-                        PushNotifications.clearDeviceInterests();
+
                         FirebaseAuth.getInstance().signOut();
                         Toast.makeText(ctx, "Đã đăng xuất", Toast.LENGTH_SHORT).show();
 

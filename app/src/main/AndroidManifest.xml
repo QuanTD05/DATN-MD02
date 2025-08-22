@@ -60,16 +60,6 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-
-        <!-- Cho phép Beams nhận FCM message và hiển thị notification -->
-        <service
-            android:name="com.pusher.pushnotifications.fcm.MessagingService"
-            android:exported="false">
-            <intent-filter android:priority="1">
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
-
         <activity
             android:name=".ResetPasswordActivity"
             android:exported="false" />
