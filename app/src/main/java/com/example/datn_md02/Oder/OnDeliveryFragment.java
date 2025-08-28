@@ -16,7 +16,11 @@ import com.example.datn_md02.Adapter.OrderAdapter;
 import com.example.datn_md02.Model.Order;
 import com.example.datn_md02.R;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.*;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,27 +29,29 @@ public class OnDeliveryFragment extends Fragment {
     private RecyclerView recyclerView;
     private OrderAdapter adapter;
     private List<Order> orderList;
+    private DatabaseReference ref;
+    private ValueEventListener ordersListener;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_on_delivery, container, false);
-        recyclerView = view.findViewById(R.id.recyclerCancelledOrders);
+        recyclerView = view.findViewById(R.id.recyclerCancelledOrders); // sửa lại ID đúng layout
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         orderList = new ArrayList<>();
         adapter = new OrderAdapter(getContext(), orderList);
         recyclerView.setAdapter(adapter);
 
-        loadOrders("ondelivery");
+        loadOrders("ondelivery"); // hoặc "ondelivery" nếu DB bạn lưu đúng tên này
         return view;
     }
 
     private void loadOrders(String status) {
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("orders").child(uid);
+        ref = FirebaseDatabase.getInstance().getReference("orders").child(uid);
 
-        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+        ordersListener = ref.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 orderList.clear();
@@ -64,5 +70,13 @@ public class OnDeliveryFragment extends Fragment {
                 Toast.makeText(getContext(), "Lỗi: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (ref != null && ordersListener != null) {
+            ref.removeEventListener(ordersListener);
+        }
     }
 }

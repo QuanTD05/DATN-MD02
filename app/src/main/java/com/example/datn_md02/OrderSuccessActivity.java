@@ -65,10 +65,12 @@ public class OrderSuccessActivity extends AppCompatActivity {
 
         // Nút quay về trang chủ
         btnBackToHome.setOnClickListener(v -> {
-            Intent intent = new Intent(OrderSuccessActivity.this, HomeFragment.class);
+            Intent intent = new Intent(OrderSuccessActivity.this, UserActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.putExtra("openFragment", "home"); // báo cho MainActivity biết mở Home
             startActivity(intent);
             finish();
         });
+
     }
 }

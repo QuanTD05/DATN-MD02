@@ -26,11 +26,12 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class FilteredOrderListFragment extends Fragment {
     private RecyclerView recyclerView;
     private OrderAdapter adapter;
     private List<Order> orderList;
+    private DatabaseReference ref;
+    private ValueEventListener ordersListener;
 
     @Nullable
     @Override
@@ -43,15 +44,15 @@ public class FilteredOrderListFragment extends Fragment {
         adapter = new OrderAdapter(getContext(), orderList);
         recyclerView.setAdapter(adapter);
 
-        loadOrders("return_requested");
+        loadOrders("return_requested"); // bạn có thể truyền status khác nếu muốn filter khác
         return view;
     }
 
     private void loadOrders(String status) {
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("orders").child(uid);
+        ref = FirebaseDatabase.getInstance().getReference("orders").child(uid);
 
-        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+        ordersListener = ref.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 orderList.clear();
@@ -70,5 +71,13 @@ public class FilteredOrderListFragment extends Fragment {
                 Toast.makeText(getContext(), "Lỗi: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (ref != null && ordersListener != null) {
+            ref.removeEventListener(ordersListener);
+        }
     }
 }
