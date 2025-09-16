@@ -2,11 +2,15 @@ package com.example.datn_md02.Fragment;
 
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.text.TextWatcher;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,6 +30,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.bumptech.glide.Glide;
 import com.example.datn_md02.Adapter.BannerAdapter;
 import com.example.datn_md02.Adapter.ProductAdapter;
 import com.example.datn_md02.Cart.CartActivity;
@@ -80,6 +85,9 @@ public class HomeFragment extends Fragment {
     private Spinner spinnerSortPrice;
     private LinearLayout layoutFilterPrice;
 
+    // Search keyword
+    private String searchKeyword = "";
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -125,7 +133,8 @@ public class HomeFragment extends Fragment {
         bannerViewPager.setAdapter(bannerAdapter);
 
         new TabLayoutMediator(bannerIndicator, bannerViewPager,
-                (tab, position) -> {}).attach();
+                (tab, position) -> {
+                }).attach();
 
         bannerHandler = new Handler(Looper.getMainLooper());
         autoSlideRunnable = () -> {
@@ -310,7 +319,6 @@ public class HomeFragment extends Fragment {
         }
     }
 
-
     private String safeGetString(DataSnapshot snapshot) {
         Object value = snapshot.getValue();
         if (value instanceof String) {
@@ -322,25 +330,21 @@ public class HomeFragment extends Fragment {
     private void setupSearchAndCategory(View view) {
         TextView edtSearch = view.findViewById(R.id.edtSearch);
         edtSearch.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void afterTextChanged(Editable s) {}
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                String keyword = s.toString().trim().toLowerCase(Locale.ROOT);
-                filteredList.clear();
-                if (keyword.isEmpty()) {
-                    filteredList.addAll(allProductList);
-                } else {
-                    for (Product p : allProductList) {
-                        if (p.getName() != null && p.getName().toLowerCase().contains(keyword)) {
-                            filteredList.add(p);
-                        }
-                    }
-                }
-                allProductAdapter.notifyDataSetChanged();
+                applySearchFilter(s.toString());
             }
         });
 
+        // Category click
         view.findViewById(R.id.itemCategoryBan)
                 .setOnClickListener(v -> openAllProductWithCategory("ban", "bàn"));
         view.findViewById(R.id.itemCategoryGhe)
@@ -351,6 +355,52 @@ public class HomeFragment extends Fragment {
                 .setOnClickListener(v -> openAllProductWithCategory("giuong", "giường"));
         view.findViewById(R.id.itemCategoryKe)
                 .setOnClickListener(v -> openAllProductWithCategory("ke", "kệ"));
+    }
+
+    private void applySearchFilter(String keyword) {
+        searchKeyword = keyword.trim().toLowerCase(Locale.ROOT);
+        filteredList.clear();
+
+        if (searchKeyword.isEmpty()) {
+            filteredList.addAll(allProductList);
+        } else {
+            boolean isNumber = searchKeyword.matches("\\d+");
+
+            for (Product p : allProductList) {
+                boolean match = false;
+
+                if (p.getName() != null && p.getName().toLowerCase().contains(searchKeyword)) {
+                    match = true;
+                }
+
+                if (!match && p.getDescription() != null &&
+                        p.getDescription().toLowerCase().contains(searchKeyword)) {
+                    match = true;
+                }
+
+                if (!match && p.getCategoryId() != null &&
+                        p.getCategoryId().toLowerCase().contains(searchKeyword)) {
+                    match = true;
+                }
+
+                if (!match && isNumber) {
+                    try {
+                        double searchPrice = Double.parseDouble(searchKeyword);
+                        if (p.getMinPrice() <= searchPrice && p.getMinPrice() + 500000 >= searchPrice) {
+                            match = true;
+                        }
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+
+                if (match) {
+                    filteredList.add(p);
+                }
+            }
+        }
+
+        allProductAdapter.setSearchKeyword(searchKeyword);
+        allProductAdapter.notifyDataSetChanged();
     }
 
     private void openAllProductWithCategory(String categoryId, String categoryName) {
@@ -385,8 +435,10 @@ public class HomeFragment extends Fragment {
                 int count = (int) snapshot.getChildrenCount();
                 updateCartBadge(count);
             }
+
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
+            public void onCancelled(@NonNull DatabaseError error) {
+            }
         });
     }
 
@@ -412,8 +464,10 @@ public class HomeFragment extends Fragment {
                     resetList();
                 }
             }
+
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
         });
     }
 
@@ -450,12 +504,30 @@ public class HomeFragment extends Fragment {
             double min = 0, max = Double.MAX_VALUE;
 
             switch (position) {
-                case 0: min = 100000; max = 500000; break;
-                case 1: min = 500000; max = 1000000; break;
-                case 2: min = 1000000; max = 3000000; break;
-                case 3: min = 3000000; max = 5000000; break;
-                case 4: min = 5000000; max = 10000000; break;
-                case 5: min = 10000000; max = Double.MAX_VALUE; break;
+                case 0:
+                    min = 100000;
+                    max = 500000;
+                    break;
+                case 1:
+                    min = 500000;
+                    max = 1000000;
+                    break;
+                case 2:
+                    min = 1000000;
+                    max = 3000000;
+                    break;
+                case 3:
+                    min = 3000000;
+                    max = 5000000;
+                    break;
+                case 4:
+                    min = 5000000;
+                    max = 10000000;
+                    break;
+                case 5:
+                    min = 10000000;
+                    max = Double.MAX_VALUE;
+                    break;
             }
 
             filterProductByPrice(min, max);

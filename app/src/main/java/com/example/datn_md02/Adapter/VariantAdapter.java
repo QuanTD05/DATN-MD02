@@ -1,5 +1,6 @@
 package com.example.datn_md02.Adapter;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,12 +22,10 @@ public class VariantAdapter extends RecyclerView.Adapter<VariantAdapter.ViewHold
     private final List<VariantDisplay> variantList;
     private final OnVariantClickListener listener;
 
-    // ✅ Giao diện callback khi click vào biến thể
     public interface OnVariantClickListener {
         void onVariantClick(VariantDisplay variant);
     }
 
-    // ✅ Constructor
     public VariantAdapter(List<VariantDisplay> variantList, OnVariantClickListener listener) {
         this.variantList = variantList;
         this.listener = listener;
@@ -57,22 +56,28 @@ public class VariantAdapter extends RecyclerView.Adapter<VariantAdapter.ViewHold
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         VariantDisplay item = variantList.get(position);
 
-        // ✅ Gộp Size và Color
         String size = item.getSize() != null ? item.getSize() : "N/A";
         String color = item.getColor() != null ? item.getColor() : "N/A";
         holder.tvSizeColor.setText(size + " - " + color);
 
-        // ✅ Hiển thị giá và tồn kho
-        holder.tvVariantPrice.setText(String.format(Locale.getDefault(), "Giá: %,d₫", (long) item.getPrice()));
-        holder.tvVariantQty.setText("SL: " + item.getQuantity());
+        holder.tvVariantPrice.setText(
+                String.format(Locale.getDefault(), "Giá: %,d₫", (long) item.getPrice())
+        );
 
-        // ✅ Load ảnh
+        // ✅ kiểm tra tồn kho
+        if (item.getQuantity() <= 0) {
+            holder.tvVariantQty.setText("Hết hàng");
+            holder.tvVariantQty.setTextColor(Color.RED);
+        } else {
+            holder.tvVariantQty.setText("SL: " + item.getQuantity());
+            holder.tvVariantQty.setTextColor(Color.DKGRAY);
+        }
+
         Glide.with(holder.itemView.getContext())
                 .load(item.getImageUrl())
                 .placeholder(R.drawable.haha)
                 .into(holder.imgVariant);
 
-        // ✅ Bắt sự kiện click
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onVariantClick(item);

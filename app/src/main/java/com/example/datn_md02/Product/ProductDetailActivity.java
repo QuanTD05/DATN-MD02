@@ -3,8 +3,8 @@ package com.example.datn_md02.Product;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.*;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -91,6 +91,10 @@ public class ProductDetailActivity extends AppCompatActivity {
         reviewAdapter = new ReviewAdapter(this, new ArrayList<>());
         recyclerReviews.setLayoutManager(new LinearLayoutManager(this));
         recyclerReviews.setAdapter(reviewAdapter);
+
+        // ❌ mặc định disable giỏ khi chưa chọn biến thể
+        btnAddToCart.setEnabled(false);
+        btnAddToCart.setAlpha(0.5f);
     }
 
     private void showProductDetails() {
@@ -127,7 +131,10 @@ public class ProductDetailActivity extends AppCompatActivity {
                     Variant variant = colorEntry.getValue();
                     variant.setSize(size);
                     variant.setColor(color);
-                    variantDisplayList.add(new VariantDisplay(size, color, variant.getPrice(), variant.getQuantity(), variant.getImageUrl()));
+                    variantDisplayList.add(new VariantDisplay(size, color,
+                            variant.getPrice(),
+                            variant.getQuantity(),
+                            variant.getImageUrl()));
                 }
             }
         }
@@ -149,6 +156,16 @@ public class ProductDetailActivity extends AppCompatActivity {
                 .load(currentImageUrl)
                 .placeholder(R.drawable.haha)
                 .into(imgProduct);
+
+        // ✅ nếu hết hàng
+        if (variant.getQuantity() <= 0) {
+            btnAddToCart.setEnabled(false);
+            btnAddToCart.setAlpha(0.5f);
+            Toast.makeText(this, "Biến thể này đã hết hàng", Toast.LENGTH_SHORT).show();
+        } else {
+            btnAddToCart.setEnabled(true);
+            btnAddToCart.setAlpha(1f);
+        }
     }
 
     private void setEventHandlers() {
@@ -230,24 +247,103 @@ public class ProductDetailActivity extends AppCompatActivity {
             return;
         }
 
-        // Kiểm tra nếu sản phẩm có biến thể thì bắt buộc chọn
-        if (product.getVariants() != null && !product.getVariants().isEmpty() && selectedVariant == null) {
-            Toast.makeText(this, "Vui lòng chọn kích thước và màu sắc trước khi thêm vào giỏ hàng", Toast.LENGTH_SHORT).show();
+        // ✅ bắt buộc chọn biến thể
+        if (selectedVariant == null) {
+            Toast.makeText(this, "Vui lòng chọn biến thể", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // ✅ nếu hết hàng thì chặn
+        if (selectedVariant.getQuantity() <= 0) {
+            Toast.makeText(this, "Biến thể này đã hết hàng", Toast.LENGTH_SHORT).show();
             return;
         }
 
         String userId = user.getUid();
-        DatabaseReference cartRef = FirebaseDatabase.getInstance().getReference("Cart").child(userId);
-        String cartId = cartRef.push().getKey();
+        DatabaseReference cartRef = FirebaseDatabase.getInstance()
+                .getReference("Cart")
+                .child(userId);
 
-        String variantSize = selectedVariant != null ? selectedVariant.size : null;
-        String variantColor = selectedVariant != null ? selectedVariant.color : null;
+        String variantSize = selectedVariant.size;
+        String variantColor = selectedVariant.color;
 
-        Cart cartItem = new Cart(cartId, product.getProductId(), product.getName(), currentImageUrl, quantity, unitPrice, true, variantSize, variantColor);
+        cartRef.orderByChild("productId").equalTo(product.getProductId())
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        boolean merged = false;
 
-        cartRef.child(cartId).setValue(cartItem)
-                .addOnSuccessListener(unused -> Toast.makeText(this, "Đã thêm vào giỏ hàng", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e -> Toast.makeText(this, "Lỗi khi thêm vào giỏ hàng", Toast.LENGTH_SHORT).show());
+                        for (DataSnapshot itemSnap : snapshot.getChildren()) {
+                            Cart existing = itemSnap.getValue(Cart.class);
+                            if (existing == null) continue;
+
+                            boolean sameSize = Objects.equals(existing.getVariantSize(), variantSize);
+                            boolean sameColor = Objects.equals(existing.getVariantColor(), variantColor);
+
+                            if (sameSize && sameColor) {
+                                int newQty = Math.max(1, existing.getQuantity()) + Math.max(1, quantity);
+                                existing.setQuantity(newQty);
+                                existing.setImageUrl(currentImageUrl);
+                                existing.setPrice(unitPrice);
+
+                                cartRef.child(itemSnap.getKey()).setValue(existing)
+                                        .addOnSuccessListener(u -> Toast.makeText(
+                                                ProductDetailActivity.this,
+                                                "Đã cập nhật số lượng trong giỏ",
+                                                Toast.LENGTH_SHORT
+                                        ).show())
+                                        .addOnFailureListener(e -> Toast.makeText(
+                                                ProductDetailActivity.this,
+                                                "Lỗi cập nhật giỏ: " + e.getMessage(),
+                                                Toast.LENGTH_SHORT
+                                        ).show());
+
+                                merged = true;
+                                break;
+                            }
+                        }
+
+                        if (!merged) {
+                            String cartId = cartRef.push().getKey();
+                            if (cartId == null) {
+                                Toast.makeText(ProductDetailActivity.this,
+                                        "Không thể tạo cartId", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+
+                            Cart newItem = new Cart(
+                                    cartId,
+                                    product.getProductId(),
+                                    product.getName(),
+                                    currentImageUrl,
+                                    Math.max(1, quantity),
+                                    unitPrice,
+                                    true,
+                                    variantSize,
+                                    variantColor
+                            );
+
+                            cartRef.child(cartId).setValue(newItem)
+                                    .addOnSuccessListener(u -> Toast.makeText(
+                                            ProductDetailActivity.this,
+                                            "Đã thêm vào giỏ hàng",
+                                            Toast.LENGTH_SHORT
+                                    ).show())
+                                    .addOnFailureListener(e -> Toast.makeText(
+                                            ProductDetailActivity.this,
+                                            "Lỗi khi thêm vào giỏ: " + e.getMessage(),
+                                            Toast.LENGTH_SHORT
+                                    ).show());
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Toast.makeText(ProductDetailActivity.this,
+                                "Lỗi giỏ hàng: " + error.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void loadCartItemCount() {

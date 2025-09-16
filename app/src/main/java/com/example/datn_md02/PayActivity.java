@@ -540,9 +540,11 @@ import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import vn.zalopay.sdk.Environment;
@@ -724,90 +726,179 @@ public class PayActivity extends AppCompatActivity {
     private void showEditAddressDialog() {
         if (firebaseUser == null) return;
 
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_address, null);
-        EditText edtName     = dialogView.findViewById(R.id.edtName);
-        EditText edtPhone    = dialogView.findViewById(R.id.edtPhone);
-        EditText edtStreet   = dialogView.findViewById(R.id.edtStreet);
-        EditText edtWard     = dialogView.findViewById(R.id.edtWard);
-        EditText edtDistrict = dialogView.findViewById(R.id.edtDistrict);
-        EditText edtCity     = dialogView.findViewById(R.id.edtCity);
-
         dbRef.child("shipping_addresses")
                 .child(firebaseUser.getUid())
                 .orderByChild("default").equalTo(true).limitToFirst(1)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        for (DataSnapshot s : snapshot.getChildren()) {
-                            String name     = s.child("name").getValue(String.class);
-                            String phone    = s.child("phone").getValue(String.class);
-                            String street   = s.child("street").getValue(String.class);
-                            String ward     = s.child("ward").getValue(String.class);
-                            String district = s.child("district").getValue(String.class);
-                            String city     = s.child("city").getValue(String.class);
-                            String addrId   = s.child("id").getValue(String.class);
+                        // Inflate view mỗi lần mở dialog
+                        View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_address, null);
+                        EditText edtName     = dialogView.findViewById(R.id.edtName);
+                        EditText edtPhone    = dialogView.findViewById(R.id.edtPhone);
+                        EditText edtStreet   = dialogView.findViewById(R.id.edtStreet);
+                        EditText edtWard     = dialogView.findViewById(R.id.edtWard);
+                        EditText edtDistrict = dialogView.findViewById(R.id.edtDistrict);
+                        EditText edtCity     = dialogView.findViewById(R.id.edtCity);
 
-                            edtName.setText(name != null ? name : "");
-                            edtPhone.setText(phone != null ? phone : "");
-                            edtStreet.setText(street != null ? street : "");
-                            edtWard.setText(ward != null ? ward : "");
-                            edtDistrict.setText(district != null ? district : "");
-                            edtCity.setText(city != null ? city : "");
-
-                            new AlertDialog.Builder(PayActivity.this)
-                                    .setTitle("Sửa địa chỉ")
-                                    .setView(dialogView)
-                                    .setPositiveButton("Lưu", (d, w) -> {
-                                        String newName     = edtName.getText().toString().trim();
-                                        String newPhone    = edtPhone.getText().toString().trim();
-                                        String newStreet   = edtStreet.getText().toString().trim();
-                                        String newWard     = edtWard.getText().toString().trim();
-                                        String newDistrict = edtDistrict.getText().toString().trim();
-                                        String newCity     = edtCity.getText().toString().trim();
-
-                                        if (newName.isEmpty() || newPhone.isEmpty() ||
-                                                newStreet.isEmpty() || newWard.isEmpty() ||
-                                                newDistrict.isEmpty() || newCity.isEmpty()) {
-                                            Toast.makeText(PayActivity.this, "Vui lòng nhập đủ thông tin", Toast.LENGTH_SHORT).show();
-                                            return;
-                                        }
-
-                                        String fullAddr = newStreet + ", " + newWard + ", " + newDistrict + ", " + newCity;
-
-                                        if (addrId != null) {
-                                            DatabaseReference addrRef = dbRef.child("shipping_addresses")
-                                                    .child(firebaseUser.getUid())
-                                                    .child(addrId);
-
-                                            addrRef.child("name").setValue(newName);
-                                            addrRef.child("phone").setValue(newPhone);
-                                            addrRef.child("street").setValue(newStreet);
-                                            addrRef.child("ward").setValue(newWard);
-                                            addrRef.child("district").setValue(newDistrict);
-                                            addrRef.child("city").setValue(newCity);
-                                            addrRef.child("fullAddress").setValue(fullAddr);
-                                        }
-
-                                        tvReceiverName.setText(newName + " | " + newPhone);
-                                        tvReceiverAddress.setText(fullAddr);
-
-                                        Toast.makeText(PayActivity.this, "Đã cập nhật địa chỉ", Toast.LENGTH_SHORT).show();
-
-                                        // 🔥 FIXED: Gán lại phí ship dựa trên city mới
-                                        shippingFee = calculateShippingFee(newCity, subtotal);
-
-                                        // Sau khi tính phí ship thì cập nhật lại tổng
-                                        updateTotalUI();
-                                    })
-                                    .setNegativeButton("Hủy", null)
-                                    .show();
-                            break;
+                        String addrId = null;
+                        if (snapshot.exists()) {
+                            for (DataSnapshot s : snapshot.getChildren()) {
+                                addrId = s.child("id").getValue(String.class);
+                                edtName.setText(s.child("name").getValue(String.class));
+                                edtPhone.setText(s.child("phone").getValue(String.class));
+                                edtStreet.setText(s.child("street").getValue(String.class));
+                                edtWard.setText(s.child("ward").getValue(String.class));
+                                edtDistrict.setText(s.child("district").getValue(String.class));
+                                edtCity.setText(s.child("city").getValue(String.class));
+                                break;
+                            }
                         }
+
+                        String finalAddrId = addrId;
+                        new AlertDialog.Builder(PayActivity.this)
+                                .setTitle(snapshot.exists() ? "Sửa địa chỉ" : "Thêm địa chỉ")
+                                .setView(dialogView)
+                                .setPositiveButton("Lưu", (d, w) -> {
+                                    String newName     = edtName.getText().toString().trim();
+                                    String newPhone    = edtPhone.getText().toString().trim();
+                                    String newStreet   = edtStreet.getText().toString().trim();
+                                    String newWard     = edtWard.getText().toString().trim();
+                                    String newDistrict = edtDistrict.getText().toString().trim();
+                                    String newCity     = edtCity.getText().toString().trim();
+
+                                    if (newName.isEmpty() || newPhone.isEmpty() ||
+                                            newStreet.isEmpty() || newWard.isEmpty() ||
+                                            newDistrict.isEmpty() || newCity.isEmpty()) {
+                                        Toast.makeText(PayActivity.this, "Vui lòng nhập đủ thông tin", Toast.LENGTH_SHORT).show();
+                                        return;
+                                    }
+
+                                    String fullAddr = newStreet + ", " + newWard + ", " + newDistrict + ", " + newCity;
+
+                                    DatabaseReference userAddrRef = dbRef.child("shipping_addresses").child(firebaseUser.getUid());
+                                    if (finalAddrId != null) {
+                                        // update
+                                        DatabaseReference addrRef = userAddrRef.child(finalAddrId);
+                                        addrRef.child("name").setValue(newName);
+                                        addrRef.child("phone").setValue(newPhone);
+                                        addrRef.child("street").setValue(newStreet);
+                                        addrRef.child("ward").setValue(newWard);
+                                        addrRef.child("district").setValue(newDistrict);
+                                        addrRef.child("city").setValue(newCity);
+                                        addrRef.child("fullAddress").setValue(fullAddr);
+                                    } else {
+                                        // thêm mới
+                                        String newId = userAddrRef.push().getKey();
+                                        HashMap<String, Object> map = new HashMap<>();
+                                        map.put("id", newId);
+                                        map.put("name", newName);
+                                        map.put("phone", newPhone);
+                                        map.put("street", newStreet);
+                                        map.put("ward", newWard);
+                                        map.put("district", newDistrict);
+                                        map.put("city", newCity);
+                                        map.put("fullAddress", fullAddr);
+                                        map.put("default", true);
+                                        userAddrRef.child(newId).setValue(map);
+                                    }
+
+                                    // cập nhật UI
+                                    tvReceiverName.setText(newName + " | " + newPhone);
+                                    tvReceiverAddress.setText(fullAddr);
+
+                                    shippingFee = calculateShippingFee(newCity, subtotal);
+                                    updateTotalUI();
+                                })
+                                .setNegativeButton("Hủy", null)
+                                .show();
                     }
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) { }
                 });
+    }
+
+    private void openAddressDialog(String addrId, String name, String phone, String street, String ward, String district, String city) {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_address, null);
+        EditText edtName = dialogView.findViewById(R.id.edtName);
+        EditText edtPhone = dialogView.findViewById(R.id.edtPhone);
+        EditText edtStreet = dialogView.findViewById(R.id.edtStreet);
+        EditText edtWard = dialogView.findViewById(R.id.edtWard);
+        EditText edtDistrict = dialogView.findViewById(R.id.edtDistrict);
+        EditText edtCity = dialogView.findViewById(R.id.edtCity);
+
+
+        edtName.setText(name != null ? name : "");
+        edtPhone.setText(phone != null ? phone : "");
+        edtStreet.setText(street != null ? street : "");
+        edtWard.setText(ward != null ? ward : "");
+        edtDistrict.setText(district != null ? district : "");
+        edtCity.setText(city != null ? city : "");
+
+
+        new AlertDialog.Builder(PayActivity.this)
+                .setTitle(addrId == null ? "Thêm địa chỉ mới" : "Sửa địa chỉ")
+                .setView(dialogView)
+                .setPositiveButton("Lưu", (d, w) -> {
+                    String newName = edtName.getText().toString().trim();
+                    String newPhone = edtPhone.getText().toString().trim();
+                    String newStreet = edtStreet.getText().toString().trim();
+                    String newWard = edtWard.getText().toString().trim();
+                    String newDistrict = edtDistrict.getText().toString().trim();
+                    String newCity = edtCity.getText().toString().trim();
+
+
+                    if (newName.isEmpty() || newPhone.isEmpty() || newStreet.isEmpty() ||
+                            newWard.isEmpty() || newDistrict.isEmpty() || newCity.isEmpty()) {
+                        Toast.makeText(PayActivity.this, "Vui lòng nhập đủ thông tin", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+
+                    String fullAddr = newStreet + ", " + newWard + ", " + newDistrict + ", " + newCity;
+
+
+                    DatabaseReference userAddrRef = dbRef.child("shipping_addresses").child(firebaseUser.getUid());
+                    if (addrId == null) {
+// thêm mới
+                        String newId = userAddrRef.push().getKey();
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("id", newId);
+                        map.put("name", newName);
+                        map.put("phone", newPhone);
+                        map.put("street", newStreet);
+                        map.put("ward", newWard);
+                        map.put("district", newDistrict);
+                        map.put("city", newCity);
+                        map.put("fullAddress", fullAddr);
+                        map.put("default", true);
+                        userAddrRef.child(newId).setValue(map);
+                    } else {
+// cập nhật
+                        DatabaseReference addrRef = userAddrRef.child(addrId);
+                        addrRef.child("name").setValue(newName);
+                        addrRef.child("phone").setValue(newPhone);
+                        addrRef.child("street").setValue(newStreet);
+                        addrRef.child("ward").setValue(newWard);
+                        addrRef.child("district").setValue(newDistrict);
+                        addrRef.child("city").setValue(newCity);
+                        addrRef.child("fullAddress").setValue(fullAddr);
+                    }
+
+
+                    tvReceiverName.setText(newName + " | " + newPhone);
+                    tvReceiverAddress.setText(fullAddr);
+
+
+                    shippingFee = calculateShippingFee(newCity, subtotal);
+                    updateTotalUI();
+
+
+                    Toast.makeText(PayActivity.this, "Đã lưu địa chỉ", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
     }
 
 

@@ -2,6 +2,10 @@ package com.example.datn_md02.Adapter;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Color;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,6 +37,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
     private final Context context;
     private final List<Product> productList;
     private final OnProductClickListener listener;
+    private String searchKeyword = ""; // 🔑 thêm biến từ khóa để highlight
 
     public interface OnProductClickListener {
         void onProductClick(Product product);
@@ -42,6 +47,11 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
         this.context = context;
         this.productList = productList;
         this.listener = listener;
+    }
+
+    // 🔑 Hàm set từ khóa từ HomeFragment
+    public void setSearchKeyword(String keyword) {
+        this.searchKeyword = keyword == null ? "" : keyword.toLowerCase(Locale.ROOT);
     }
 
     @NonNull
@@ -57,19 +67,38 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
         Product product = productList.get(position);
         if (product == null) return;
 
-        // Tên sản phẩm
-        holder.tvName.setText(product.getName());
+        // ✅ Highlight tên sản phẩm
+        if (!searchKeyword.isEmpty() && product.getName() != null) {
+            String name = product.getName();
+            String lowerName = name.toLowerCase(Locale.ROOT);
 
-        // Giá
+            int start = lowerName.indexOf(searchKeyword);
+            if (start >= 0) {
+                SpannableString spannable = new SpannableString(name);
+                spannable.setSpan(
+                        new ForegroundColorSpan(Color.YELLOW), // màu vàng
+                        start,
+                        start + searchKeyword.length(),
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                );
+                holder.tvName.setText(spannable);
+            } else {
+                holder.tvName.setText(name);
+            }
+        } else {
+            holder.tvName.setText(product.getName());
+        }
+
+        // ✅ Giá
         double price = getFirstVariantPrice(product);
         holder.tvPrice.setText(price > 0
                 ? String.format(Locale.getDefault(), "%,.0f₫", price)
                 : "Chưa có");
 
-        // Thời gian
+        // ✅ Thời gian
         holder.tvTime.setText(getTimeAgo(product.getCreated()));
 
-        // Ảnh sản phẩm
+        // ✅ Ảnh sản phẩm
         Glide.with(context)
                 .load(product.getImageUrl())
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
@@ -80,7 +109,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
         // ✅ Đánh giá trung bình từ Firebase
         loadAverageRatingFromFirebase(holder, product.getProductId());
 
-        // Click
+        // ✅ Click
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onProductClick(product);
         });
@@ -90,13 +119,13 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
     public int getItemCount() {
         return productList != null ? productList.size() : 0;
     }
+
     @SuppressLint("NotifyDataSetChanged")
     public void updateData(List<Product> newList) {
         productList.clear();
         productList.addAll(newList);
         notifyDataSetChanged();
     }
-
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imageProduct;

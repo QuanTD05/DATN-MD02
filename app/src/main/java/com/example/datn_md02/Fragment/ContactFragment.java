@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -40,7 +41,7 @@ public class ContactFragment extends Fragment {
     private final String currentEmail = FirebaseAuth.getInstance()
             .getCurrentUser().getEmail();
 
-    private DatabaseReference usersRef, chatsRef;
+    private DatabaseReference usersRef, chatsRef, userChatsRef, staffChatsRef;
     private DataSnapshot lastChatSnapshot = null;
     private OnMessageUnreadCountListener unreadListener;
 
@@ -58,11 +59,13 @@ public class ContactFragment extends Fragment {
 
         rvStaff = view.findViewById(R.id.rvStaff);
         rvStaff.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new StaffAdapter(staffList, getContext(), this::openChat);
+        adapter = new StaffAdapter(staffList, getContext(), this::onStaffClick);
         rvStaff.setAdapter(adapter);
 
         usersRef = FirebaseDatabase.getInstance().getReference("users");
         chatsRef = FirebaseDatabase.getInstance().getReference("chats");
+        userChatsRef = FirebaseDatabase.getInstance().getReference("userChats");
+        staffChatsRef = FirebaseDatabase.getInstance().getReference("staffChats");
 
         loadStaffRealtime();
 
@@ -79,18 +82,59 @@ public class ContactFragment extends Fragment {
         return view;
     }
 
+    /** Xử lý khi user click chọn 1 staff */
+    private void onStaffClick(User staff) {
+        String userKey = sanitizeEmail(currentEmail);
+        String staffKey = sanitizeEmail(staff.getEmail());
+
+        userChatsRef.child(userKey).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot snapshot) {
+                String assignedStaff = snapshot.getValue(String.class);
+
+                if (assignedStaff == null) {
+                    // Chưa gán -> kiểm tra staff này đã đủ 5 user chưa
+                    staffChatsRef.child(staffKey).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                            long count = snap.getChildrenCount();
+                            if (count >= 5) {
+                                Toast.makeText(getContext(),
+                                        "Nhân viên này đang hỗ trợ tối đa khách hàng, vui lòng chọn nhân viên khác.",
+                                        Toast.LENGTH_LONG).show();
+                            } else {
+                                // Gán staff cho user
+                                userChatsRef.child(userKey).setValue(staff.getEmail());
+                                staffChatsRef.child(staffKey).child(userKey).setValue(true);
+                                openChat(staff);
+                            }
+                        }
+                        @Override public void onCancelled(@NonNull DatabaseError error) {}
+                    });
+
+                } else {
+                    // Đã gán -> chỉ cho chat với staff đó
+                    if (assignedStaff.equalsIgnoreCase(staff.getEmail())) {
+                        openChat(staff);
+                    } else {
+                        Toast.makeText(getContext(),
+                                "Bạn đã được gán cho nhân viên khác để hỗ trợ.",
+                                Toast.LENGTH_LONG).show();
+                    }
+                }
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
     private void loadStaffRealtime() {
         usersRef.orderByChild("role").equalTo("staff")
                 .addValueEventListener(new ValueEventListener() {
                     @Override public void onDataChange(@NonNull DataSnapshot snap) {
                         staffList.clear();
-                        User currentUserObj = null;
 
                         for (DataSnapshot ds : snap.getChildren()) {
                             User u = ds.getValue(User.class);
                             if (u == null) continue;
 
-                            // Lấy status từ users
                             Object statusVal = ds.child("status").getValue();
                             boolean isOnline = false;
                             if (statusVal instanceof String) {
@@ -100,22 +144,12 @@ public class ContactFragment extends Fragment {
                             }
                             u.setOnline(isOnline);
 
-                            // Mặc định tin nhắn
                             u.setLastMessageText("Chưa có tin nhắn");
                             u.setLastMessageTimestamp(0);
                             u.setUnreadCount(0);
                             u.setHasUnread(false);
 
-                            if (u.getEmail().equalsIgnoreCase(currentEmail)) {
-                                currentUserObj = u; // lưu lại để đẩy lên đầu
-                            } else {
-                                staffList.add(u);
-                            }
-                        }
-
-                        // Đẩy user hiện tại lên đầu danh sách
-                        if (currentUserObj != null) {
-                            staffList.add(0, currentUserObj);
+                            staffList.add(u);
                         }
 
                         if (lastChatSnapshot != null) {
@@ -173,43 +207,38 @@ public class ContactFragment extends Fragment {
             unreadListener.onUnreadMessages(totalUnread);
         }
 
-        // Chỉ sắp xếp phần còn lại nếu danh sách > 1 phần tử
-        if (staffList.size() > 1) {
-            List<User> others = staffList.subList(1, staffList.size());
-            Collections.sort(others, (a, b) ->
-                    Long.compare(b.getLastMessageTimestamp(),
-                            a.getLastMessageTimestamp()));
-        }
+        Collections.sort(staffList, (a, b) ->
+                Long.compare(b.getLastMessageTimestamp(),
+                        a.getLastMessageTimestamp()));
 
         adapter.notifyDataSetChanged();
     }
 
+    private void openChat(User staff) {
+        // Đánh dấu tin nhắn đã đọc trước khi mở
+        chatsRef.get().addOnSuccessListener(snapshot -> {
+            for (DataSnapshot c : snapshot.getChildren()) {
+                Message m = c.getValue(Message.class);
+                if (m == null) continue;
 
-    private void openChat(User u) {
-        chatsRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for (DataSnapshot c : snapshot.getChildren()) {
-                    Message m = c.getValue(Message.class);
-                    if (m == null) continue;
+                boolean isFromStaffToMe = m.getSender().equalsIgnoreCase(staff.getEmail())
+                        && m.getReceiver().equalsIgnoreCase(currentEmail)
+                        && !m.isSeen();
 
-                    boolean isFromUserToMe = m.getSender().equalsIgnoreCase(u.getEmail())
-                            && m.getReceiver().equalsIgnoreCase(currentEmail)
-                            && !m.isSeen();
-
-                    if (isFromUserToMe) {
-                        c.getRef().child("seen").setValue(true);
-                    }
+                if (isFromStaffToMe) {
+                    c.getRef().child("seen").setValue(true);
                 }
-
-                Intent it = new Intent(getContext(), ChatActivity.class);
-                it.putExtra("partner_email",  u.getEmail());
-                it.putExtra("partner_name",   u.getFullName());
-                it.putExtra("partner_avatar", u.getAvatar());
-                startActivity(it);
             }
 
-            @Override public void onCancelled(@NonNull DatabaseError error) {}
+            Intent it = new Intent(getContext(), ChatActivity.class);
+            it.putExtra("partner_email",  staff.getEmail());
+            it.putExtra("partner_name",   staff.getFullName());
+            it.putExtra("partner_avatar", staff.getAvatar());
+            startActivity(it);
         });
+    }
+
+    private String sanitizeEmail(String email) {
+        return email == null ? "" : email.replaceAll("[.#\\$\\[\\]]", ",");
     }
 }
