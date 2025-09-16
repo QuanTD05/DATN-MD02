@@ -1,5 +1,6 @@
 package com.example.datn_md02.Fragment;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -10,8 +11,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -40,6 +45,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -58,7 +64,6 @@ public class HomeFragment extends Fragment {
     private DatabaseReference productRef;
 
     private TextView tvAll;
-    private EditText edtSearch;
     private TextView tvCartBadge;
 
     // Banner
@@ -70,6 +75,10 @@ public class HomeFragment extends Fragment {
     private Runnable autoSlideRunnable;
     private final int bannerIntervalMs = 5000;
     private int bannerCurrentIndex = 0;
+
+    // Filter & Sort
+    private Spinner spinnerSortPrice;
+    private LinearLayout layoutFilterPrice;
 
     @Nullable
     @Override
@@ -115,13 +124,9 @@ public class HomeFragment extends Fragment {
         bannerAdapter = new BannerAdapter(requireContext(), bannerList);
         bannerViewPager.setAdapter(bannerAdapter);
 
-        // TabLayout indicator
         new TabLayoutMediator(bannerIndicator, bannerViewPager,
-                (tab, position) -> {
-                    // no action needed, just indicator
-                }).attach();
+                (tab, position) -> {}).attach();
 
-        // Handler & runnable
         bannerHandler = new Handler(Looper.getMainLooper());
         autoSlideRunnable = () -> {
             if (!bannerList.isEmpty() && bannerAdapter.getItemCount() > 0) {
@@ -139,10 +144,14 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        // Load banners from Firebase
-        loadBannerFromFirebase();
+        // Filter & Sort
+        spinnerSortPrice = view.findViewById(R.id.spinnerSortPrice);
+        layoutFilterPrice = view.findViewById(R.id.layoutFilterPrice);
+        setupSortSpinner();
+        setupFilterClick();
 
-        // Load sản phẩm
+        // Load banners + products
+        loadBannerFromFirebase();
         loadAllProducts();
 
         // Search + Category
@@ -179,12 +188,12 @@ public class HomeFragment extends Fragment {
                 }
                 bannerAdapter.notifyDataSetChanged();
 
-                if (bannerList.isEmpty()) {
-                    bannerHandler.removeCallbacks(autoSlideRunnable);
-                } else {
+                if (!bannerList.isEmpty()) {
                     bannerCurrentIndex = 0;
                     bannerViewPager.setCurrentItem(0, false);
                     startAutoSlide();
+                } else {
+                    bannerHandler.removeCallbacks(autoSlideRunnable);
                 }
             }
 
@@ -205,7 +214,7 @@ public class HomeFragment extends Fragment {
     }
 
     private void loadAllProducts() {
-        productRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        productRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 allProductList.clear();
@@ -215,6 +224,13 @@ public class HomeFragment extends Fragment {
                         allProductList.add(product);
                     }
                 }
+
+                // sort newest
+                Collections.sort(allProductList, (p1, p2) -> {
+                    if (p1.getCreated() == null || p2.getCreated() == null) return 0;
+                    return p2.getCreated().compareTo(p1.getCreated());
+                });
+
                 filteredList.clear();
                 filteredList.addAll(allProductList);
                 allProductAdapter.notifyDataSetChanged();
@@ -240,9 +256,18 @@ public class HomeFragment extends Fragment {
             product.setDescription(safeGetString(data.child("description")));
             product.setCategoryId(safeGetString(data.child("categoryId")));
 
+            // 🔥 Lấy created hoặc updatedAt thay vì luôn new Date()
             Object createdObj = data.child("created").getValue();
+            if (createdObj == null) {
+                createdObj = data.child("updatedAt").getValue(); // fallback
+            }
+
             if (createdObj instanceof Long) {
                 product.setCreated(new Date((Long) createdObj));
+            } else if (createdObj instanceof Double) {
+                product.setCreated(new Date(((Double) createdObj).longValue()));
+            } else {
+                product.setCreated(null); // để null nếu không có
             }
 
             // Variants
@@ -285,6 +310,7 @@ public class HomeFragment extends Fragment {
         }
     }
 
+
     private String safeGetString(DataSnapshot snapshot) {
         Object value = snapshot.getValue();
         if (value instanceof String) {
@@ -294,12 +320,10 @@ public class HomeFragment extends Fragment {
     }
 
     private void setupSearchAndCategory(View view) {
-        edtSearch = view.findViewById(R.id.edtSearch);
-
+        TextView edtSearch = view.findViewById(R.id.edtSearch);
         edtSearch.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void afterTextChanged(Editable s) {}
-
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String keyword = s.toString().trim().toLowerCase(Locale.ROOT);
@@ -330,7 +354,6 @@ public class HomeFragment extends Fragment {
     }
 
     private void openAllProductWithCategory(String categoryId, String categoryName) {
-        Log.d(TAG, "Mở AllProductActivity với loại: " + categoryName);
         Intent intent = new Intent(requireContext(), AllProductActivity.class);
         intent.putExtra("categoryId", categoryId);
         intent.putExtra("categoryName", categoryName);
@@ -339,7 +362,6 @@ public class HomeFragment extends Fragment {
 
     private void updateCartBadge(int cartCount) {
         if (tvCartBadge == null) return;
-
         if (cartCount > 0) {
             tvCartBadge.setText(String.valueOf(cartCount));
             tvCartBadge.setVisibility(View.VISIBLE);
@@ -352,28 +374,121 @@ public class HomeFragment extends Fragment {
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null
                 ? FirebaseAuth.getInstance().getCurrentUser().getUid()
                 : null;
-
         if (userId == null) {
             updateCartBadge(0);
             return;
         }
-
-        DatabaseReference cartRef = FirebaseDatabase.getInstance()
-                .getReference("Cart")
-                .child(userId);
-
+        DatabaseReference cartRef = FirebaseDatabase.getInstance().getReference("Cart").child(userId);
         cartRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 int count = (int) snapshot.getChildrenCount();
                 updateCartBadge(count);
             }
-
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e(TAG, "Lỗi load giỏ hàng: " + error.getMessage());
-            }
+            public void onCancelled(@NonNull DatabaseError error) {}
         });
+    }
+
+    // ===== FILTER & SORT =====
+
+    private void setupSortSpinner() {
+        ArrayAdapter<String> sortAdapter = new ArrayAdapter<>(
+                requireContext(),
+                android.R.layout.simple_spinner_item,
+                new String[]{"Mặc định", "Giá tăng dần", "Giá giảm dần"}
+        );
+        sortAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerSortPrice.setAdapter(sortAdapter);
+
+        spinnerSortPrice.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position == 1) {
+                    sortProductByPrice(true);
+                } else if (position == 2) {
+                    sortProductByPrice(false);
+                } else {
+                    resetList();
+                }
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+    }
+
+    private void setupFilterClick() {
+        layoutFilterPrice.setOnClickListener(v -> showFilterPriceDialog());
+    }
+
+    private void showFilterPriceDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_filter_price, null);
+        builder.setView(dialogView);
+
+        ListView listView = dialogView.findViewById(R.id.listPriceRange);
+
+        String[] priceRanges = {
+                "100.000 - 500.000",
+                "500.000 - 1.000.000",
+                "1.000.000 - 3.000.000",
+                "3.000.000 - 5.000.000",
+                "5.000.000 - 10.000.000",
+                "Trên 10.000.000"
+        };
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                requireContext(),
+                android.R.layout.simple_list_item_1,
+                priceRanges
+        );
+        listView.setAdapter(adapter);
+
+        AlertDialog dialog = builder.create();
+
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            double min = 0, max = Double.MAX_VALUE;
+
+            switch (position) {
+                case 0: min = 100000; max = 500000; break;
+                case 1: min = 500000; max = 1000000; break;
+                case 2: min = 1000000; max = 3000000; break;
+                case 3: min = 3000000; max = 5000000; break;
+                case 4: min = 5000000; max = 10000000; break;
+                case 5: min = 10000000; max = Double.MAX_VALUE; break;
+            }
+
+            filterProductByPrice(min, max);
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
+
+    private void filterProductByPrice(double min, double max) {
+        filteredList.clear();
+        for (Product p : allProductList) {
+            double price = p.getMinPrice();
+            if (price >= min && price <= max) {
+                filteredList.add(p);
+            }
+        }
+        allProductAdapter.notifyDataSetChanged();
+    }
+
+    private void sortProductByPrice(boolean ascending) {
+        Collections.sort(filteredList, (p1, p2) -> {
+            double price1 = p1.getMinPrice();
+            double price2 = p2.getMinPrice();
+            return ascending ? Double.compare(price1, price2) : Double.compare(price2, price1);
+        });
+        allProductAdapter.notifyDataSetChanged();
+    }
+
+    private void resetList() {
+        filteredList.clear();
+        filteredList.addAll(allProductList);
+        allProductAdapter.notifyDataSetChanged();
     }
 
     @Override

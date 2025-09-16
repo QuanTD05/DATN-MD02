@@ -16,7 +16,11 @@ import com.example.datn_md02.Adapter.OrderAdapter;
 import com.example.datn_md02.Model.Order;
 import com.example.datn_md02.R;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.*;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +29,8 @@ public class PendingOrderFragment extends Fragment {
     private RecyclerView recyclerView;
     private OrderAdapter adapter;
     private List<Order> orderList;
+    private DatabaseReference ref;
+    private ValueEventListener ordersListener;
 
     @Nullable
     @Override
@@ -43,9 +49,9 @@ public class PendingOrderFragment extends Fragment {
 
     private void loadOrders(String status) {
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("orders").child(uid);
+        ref = FirebaseDatabase.getInstance().getReference("orders").child(uid);
 
-        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+        ordersListener = ref.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 orderList.clear();
@@ -69,5 +75,11 @@ public class PendingOrderFragment extends Fragment {
         });
     }
 
-
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (ref != null && ordersListener != null) {
+            ref.removeEventListener(ordersListener);
+        }
+    }
 }

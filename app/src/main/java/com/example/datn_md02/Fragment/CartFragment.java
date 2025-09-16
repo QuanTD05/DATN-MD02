@@ -17,7 +17,9 @@ import com.example.datn_md02.Adapter.CartAdapter;
 import com.example.datn_md02.Model.Cart;
 import com.example.datn_md02.PayActivity;
 import com.example.datn_md02.R;
+import com.example.datn_md02.LoginActivity;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.*;
 
 import java.io.Serializable;
@@ -51,11 +53,22 @@ public class CartFragment extends Fragment {
         checkboxSelectAll = view.findViewById(R.id.checkboxSelectAll);
         btnCheckout = view.findViewById(R.id.btnCheckout);
         btnBack = view.findViewById(R.id.btnBack);
+
         btnBack.setOnClickListener(v -> {
             requireActivity().onBackPressed(); // quay lại màn hình trước
         });
 
-        currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        // 🔹 Check user đăng nhập
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            Toast.makeText(requireContext(), "Bạn cần đăng nhập để xem giỏ hàng!", Toast.LENGTH_SHORT).show();
+            // Chuyển sang màn hình đăng nhập
+            startActivity(new Intent(requireContext(), LoginActivity.class));
+            requireActivity().finish(); // đóng activity hiện tại để tránh back lại
+            return view;
+        }
+
+        currentUserId = user.getUid();
         cartRef = FirebaseDatabase.getInstance().getReference("Cart").child(currentUserId);
 
         setupRecyclerView();

@@ -10,16 +10,18 @@ public class Product implements Serializable {
     private String productId;
     private String name;
     private String description;
-    private double price; // optional, nếu không dùng có thể bỏ
+    private double price; // giá gốc (nếu không có variants thì dùng cái này)
     private String imageUrl;
-    private String categoryId; // ✅ Sửa lại thành String
-    private Date created;      // Nếu không dùng timestamp, có thể chuyển sang String
-    private Map<String, Map<String, Variant>> variants;
+    private String categoryId;
+    private Date created;
+    private Map<String, Map<String, Variant>> variants; // size -> color -> variant
     private List<Review> reviews;
 
     public Product() {
         // Constructor rỗng để Firebase deserialize
     }
+
+    // ===== Getter & Setter =====
 
     public String getProductId() {
         return productId;
@@ -91,5 +93,57 @@ public class Product implements Serializable {
 
     public void setReviews(List<Review> reviews) {
         this.reviews = reviews;
+    }
+
+    // ===== Tiện ích cho lọc & sắp xếp =====
+
+    /**
+     * Lấy giá nhỏ nhất trong các variants.
+     * Nếu không có variants thì trả về price gốc.
+     */
+    public double getMinPrice() {
+        double min = Double.MAX_VALUE;
+
+        if (variants != null && !variants.isEmpty()) {
+            for (Map<String, Variant> colorMap : variants.values()) {
+                if (colorMap != null) {
+                    for (Variant v : colorMap.values()) {
+                        if (v != null && v.getPrice() > 0 && v.getPrice() < min) {
+                            min = v.getPrice();
+                        }
+                    }
+                }
+            }
+        }
+
+        if (min == Double.MAX_VALUE) {
+            return price;
+        }
+        return min;
+    }
+
+    /**
+     * Lấy giá lớn nhất trong các variants.
+     * Nếu không có variants thì trả về price gốc.
+     */
+    public double getMaxPrice() {
+        double max = 0;
+
+        if (variants != null && !variants.isEmpty()) {
+            for (Map<String, Variant> colorMap : variants.values()) {
+                if (colorMap != null) {
+                    for (Variant v : colorMap.values()) {
+                        if (v != null && v.getPrice() > max) {
+                            max = v.getPrice();
+                        }
+                    }
+                }
+            }
+        }
+
+        if (max == 0) {
+            return price;
+        }
+        return max;
     }
 }
